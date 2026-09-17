@@ -1,0 +1,41 @@
+:root {
+  font-family: Bahnschrift, "Trebuchet MS", sans-serif;
+  color: #202522;
+  background: #eef1ee;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  --color-primary: #087f78;
+  --color-secondary: #d79721;
+  --color-neutral: #68716c;
+  --color-success: #17805f;
+  --color-danger: #b83e35;
+  --neutral-clr-50: #f8faf8;
+}
+
+* {
+  box-sizing: border-box;
+}
+html {
+  min-width: 320px;
+  background: #eef1ee;
+}
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+button,
+select {
+  font: inherit;
+}
+button {
+  letter-spacing: 0;
+}
+button:focus-visible {
+  outline: 2px solid #087f78;
+  outline-offset: 2px;
+}
+#root {
+  min-height: 100vh;
+}

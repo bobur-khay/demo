@@ -1,0 +1,2697 @@
+{
+  "@type" : "tm:ThingModel",
+  "@context" : [ "https://www.w3.org/2022/wot/td/v1.1", {
+    "schema" : "https://schema.org/"
+  }, {
+    "unit" : "https://qudt.org/vocab/unit/"
+  } ],
+  "id" : "b1034ddb-e09f-4275-949e-575d8f6c333d",
+  "version" : {
+    "model" : "0.0.2"
+  },
+  "schema:author" : {
+    "name" : "Wattsense"
+  },
+  "schema:manufacturer" : {
+    "identifier" : "SIEMENS",
+    "name" : "SIEMENS",
+    "url" : "https://siemens.com"
+  },
+  "schema:model" : {
+    "name" : "SENTRON 7KM PAC4200"
+  },
+  "title" : "SIEMENS - SENTRON 7KM PAC4200",
+  "description" : "measuring device 5A, Modbus TCP",
+  "ws:status" : "PUBLISHED",
+  "ws:datasheets" : [ ],
+  "ws:audit" : {
+    "createdAt" : "2023-01-03T14:44:19Z",
+    "updatedAt" : "2023-12-20T13:51:44Z"
+  },
+  "ws:equipmentTypes" : [ "brick:Electrical_Meter" ],
+  "ws:pklModule" : "ModbusThing.pkl",
+  "ws:numberOfPictures" : 1,
+  "forms" : [ {
+    "href" : "modbus+tcp://",
+    "ws:protocol" : "MODBUS_IP"
+  } ],
+  "properties" : {
+    "voltage-l1-n" : {
+      "id" : "c39be484-4988-488e-bc81-d6d6692b6673",
+      "title" : "Voltage L1-N",
+      "unit" : "unit:V",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 1,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "voltage-l2-n" : {
+      "id" : "d95bc58e-ec69-4de8-bd9d-3ae9ad72a232",
+      "title" : "Voltage L2-N",
+      "unit" : "unit:V",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 3,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "voltage-l3-n" : {
+      "id" : "1755c08b-9f05-4c23-96df-049620fcd4c1",
+      "title" : "Voltage L3-N",
+      "unit" : "unit:V",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 5,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "voltage-l1-l2" : {
+      "id" : "f99df171-ad26-40cd-a05e-2bb21e43aa65",
+      "title" : "Voltage L1-L2",
+      "unit" : "unit:V",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 7,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "voltage-l2-l3" : {
+      "id" : "6406515a-ebcb-4d3c-8055-51085d20a645",
+      "title" : "Voltage L2-L3",
+      "unit" : "unit:V",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 9,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "voltage-l3-l1" : {
+      "id" : "c0d6fa24-dbd9-4e76-ba1f-054db585fa73",
+      "title" : "Voltage L3-L1",
+      "unit" : "unit:V",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 11,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "current-l1" : {
+      "id" : "66a4f16d-95a7-40a0-8272-ba63c4e1bd30",
+      "title" : "Current L1",
+      "unit" : "unit:A",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 13,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "current-l2" : {
+      "id" : "6919cc7f-83c6-46d9-bbc0-f3f1694e3bea",
+      "title" : "Current L2",
+      "unit" : "unit:A",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 15,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "current-l3" : {
+      "id" : "bcf16bae-637c-4fc2-94af-93725b64f251",
+      "title" : "Current L3",
+      "unit" : "unit:A",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 17,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "apparent-power-l1" : {
+      "id" : "11d54b26-a120-48ae-9d26-3ac339075fa9",
+      "title" : "Apparent power L1",
+      "unit" : "unit:V-A",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 19,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "apparent-power-l2" : {
+      "id" : "15294689-0ecd-4d01-999c-dea243d823b7",
+      "title" : "Apparent power L2",
+      "unit" : "unit:V-A",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 21,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "apparent-power-l3" : {
+      "id" : "f7344355-b201-42f3-9f52-54f91935a009",
+      "title" : "Apparent power L3",
+      "unit" : "unit:V-A",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 23,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "active-power-l1" : {
+      "id" : "7274a765-6d14-4b15-b959-70c28e7f90d4",
+      "title" : "Active power L1",
+      "unit" : "unit:W",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 25,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "active-power-l2" : {
+      "id" : "8d6695b7-9478-4e52-b4c2-6f1609ea4620",
+      "title" : "Active power L2",
+      "unit" : "unit:W",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 27,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "active-power-l3" : {
+      "id" : "e44578ed-4ec0-4759-bc5b-33a17579b6d1",
+      "title" : "Active power L3",
+      "unit" : "unit:W",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 29,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "reactive-power-l1-qn" : {
+      "id" : "8fd38174-2510-4cfd-a06c-3f05b01e435a",
+      "title" : "Reactive Power L1 (Qn)",
+      "unit" : "unit:V-A_Reactive",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 31,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "reactive-power-l2-qn" : {
+      "id" : "31a4c1d1-5e7b-40b1-a5a5-bbb6e62fba13",
+      "title" : "Reactive power L2 (Qn)",
+      "unit" : "unit:V-A_Reactive",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 33,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "reactive-power-l3-qn" : {
+      "id" : "c4ff6837-4d16-424f-b218-4a172820e9cd",
+      "title" : "Reactive power L3 (Qn)",
+      "unit" : "unit:V-A_Reactive",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 35,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "power-factor-l1" : {
+      "id" : "7cb11e72-8147-4cb2-8509-df0b0effd129",
+      "title" : "Power factor L1",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 37,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "power-factor-l2" : {
+      "id" : "41c704e3-fe35-4331-87fa-0528b2e1a3ad",
+      "title" : "Power factor L2",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 39,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "power-factor-l3" : {
+      "id" : "1de1933b-3c2e-4d85-a7b0-ebe879ef64c2",
+      "title" : "Power factor L3",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 41,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "thd-voltage-l1-l2" : {
+      "id" : "e4b732bf-1687-4bd1-8914-f4270f23202c",
+      "title" : "THD voltage L1-L2",
+      "unit" : "unit:PERCENT",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 43,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "thd-voltage-l2-l3" : {
+      "id" : "e515f9d6-aec7-4d4c-aa65-c48d07d64c88",
+      "title" : "THD voltage L2-L3",
+      "unit" : "unit:PERCENT",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 45,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "thd-voltage-l3-l1" : {
+      "id" : "c57f7b71-dbfe-4df2-b680-1febbe9a9190",
+      "title" : "THD voltage L3-L1",
+      "unit" : "unit:PERCENT",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 47,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "line-frequency" : {
+      "id" : "6204d20f-c7b0-4b60-b3c7-b77f87798638",
+      "title" : "Line Frequency",
+      "unit" : "unit:HZ",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 55,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "3-phase-average-voltage-l-n" : {
+      "id" : "091430b1-05c1-4024-9625-27a969af3e93",
+      "title" : "3-phase average voltage L-N",
+      "unit" : "unit:V",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 57,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "3-phase-average-voltage-l-l" : {
+      "id" : "c766550f-7905-461e-9ea2-d0816a7ac765",
+      "title" : "3-phase average voltage L-L",
+      "unit" : "unit:V",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 59,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "3-phase-average-current-l-l" : {
+      "id" : "189e950f-df4a-4f0d-8cec-0ef7e7f54f64",
+      "title" : "3-Phase Average Current L-L",
+      "unit" : "unit:A",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 61,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "total-apparent-power" : {
+      "id" : "22efb72c-971e-4b71-864a-7a722199a06a",
+      "title" : "Total Apparent Power",
+      "unit" : "unit:V-A",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 63,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "total-active-power" : {
+      "id" : "22a89901-fac6-4c9a-a16a-086a7ea39581",
+      "title" : "Total Active Power",
+      "unit" : "unit:W",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 65,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "total-reactive-power-qn" : {
+      "id" : "17b68325-f0d8-44af-bece-9ccd4fc87c7e",
+      "title" : "Total Reactive Power (Qn)",
+      "unit" : "unit:V-A_Reactive",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 67,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "total-power-factor" : {
+      "id" : "91a3d294-0eb1-40b9-8789-4eec08f099a1",
+      "title" : "Total Power Factor",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 69,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "amplitude-unbalance-voltage" : {
+      "id" : "1d4ec53a-51d2-443c-be63-5d81cdf709e0",
+      "title" : "Amplitude Unbalance Voltage",
+      "unit" : "unit:PERCENT",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 71,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "amplitude-unbalance-current" : {
+      "id" : "e0272254-af84-40ce-9585-0e62c70ee00f",
+      "title" : "Amplitude Unbalance Current",
+      "unit" : "unit:PERCENT",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 73,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "maximum-voltage-l1-n" : {
+      "id" : "41402da5-a817-4d12-87de-68e8f77e8e95",
+      "title" : "Maximum voltage L1-N",
+      "unit" : "unit:V",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 75,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "maximum-voltage-l2-n" : {
+      "id" : "395dbbae-65cd-4e60-83fe-43ab038705c0",
+      "title" : "Maximum voltage L2-N",
+      "unit" : "unit:V",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 77,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "maximum-voltage-l3-n" : {
+      "id" : "0ae80a0a-0989-426c-ab92-84ca841ddb0e",
+      "title" : "Maximum voltage L3-N",
+      "unit" : "unit:V",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 79,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "maximum-voltage-l1-l2" : {
+      "id" : "1ef8d922-28d7-4fa1-827c-ed07dbd062ac",
+      "title" : "Maximum voltage L1-L2",
+      "unit" : "unit:V",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 81,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "maximum-voltage-l2-l3" : {
+      "id" : "eb2b3176-83ce-4cf6-a05a-02784a903f5a",
+      "title" : "Maximum voltage L2-L3",
+      "unit" : "unit:V",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 83,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "maximum-voltage-l3-l1" : {
+      "id" : "b8498624-db5e-4ae4-9eae-5b9f1a1fbc20",
+      "title" : "Maximum voltage L3-L1",
+      "unit" : "unit:V",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 85,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "maximum-current-l1" : {
+      "id" : "8b8f36a8-053f-4a5e-b6a2-e74066fe00ee",
+      "title" : "Maximum Current L1",
+      "unit" : "unit:A",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 87,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "maximum-current-l2" : {
+      "id" : "a0048f0c-64fe-48d3-8fb6-6c02a774be37",
+      "title" : "Maximum Current L2",
+      "unit" : "unit:A",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 89,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "maximum-current-l3" : {
+      "id" : "3402b488-f64c-411e-965a-4f04b35296cd",
+      "title" : "Maximum Current L3",
+      "unit" : "unit:A",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 91,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "maximum-apparent-power-l1" : {
+      "id" : "6d360a2a-0e79-4439-9ef3-8e5cd88904d0",
+      "title" : "Maximum Apparent Power L1",
+      "unit" : "unit:V-A",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 93,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "maximum-apparent-power-l2" : {
+      "id" : "930b4f8e-6d7e-41e2-a531-dac2a25f82d9",
+      "title" : "Maximum Apparent Power L2",
+      "unit" : "unit:V-A",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 95,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "maximum-apparent-power-l3" : {
+      "id" : "3048a873-8cea-482a-9436-b3df3e2b75cf",
+      "title" : "Maximum Apparent Power L3",
+      "unit" : "unit:V-A",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 97,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "maximum-active-power-l1" : {
+      "id" : "922cb607-4b33-48b9-8b18-1d749a6dab1a",
+      "title" : "Maximum Active Power L1",
+      "unit" : "unit:W",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 99,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "maximum-active-power-l2" : {
+      "id" : "b1462e66-463d-40d9-b54b-e8ae970d33e9",
+      "title" : "Maximum Active Power L2",
+      "unit" : "unit:W",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 101,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "maximum-active-power-l3" : {
+      "id" : "6847e09f-691e-496d-9d34-5afca2ef56e3",
+      "title" : "Maximum Active Power L3",
+      "unit" : "unit:W",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 103,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "maximum-reactive-power-l1-qn" : {
+      "id" : "868f6b81-2401-44bc-9052-874017cc450d",
+      "title" : "Maximum Reactive Power L1 (Qn)",
+      "unit" : "unit:V-A_Reactive",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 105,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "maximum-reactive-power-l2-qn" : {
+      "id" : "166f5077-ef7d-42de-8810-515fa4644f09",
+      "title" : "Maximum Reactive Power L2 (Qn)",
+      "unit" : "unit:V-A_Reactive",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 107,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "maximum-reactive-power-l3-qn" : {
+      "id" : "95650e0a-da1c-4c56-a2a6-d30cc3628b11",
+      "title" : "Maximum Reactive Power L3 (Qn)",
+      "unit" : "unit:V-A_Reactive",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 109,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "maximum-power-factor-l1" : {
+      "id" : "a8f5b518-68bc-475a-920e-a35ea1bef054",
+      "title" : "Maximum Power Factor L1",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 111,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "maximum-power-factor-l2" : {
+      "id" : "c80e8a2d-5ac4-4f19-adfb-77b896651ba4",
+      "title" : "Maximum Power Factor L2",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 113,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "maximum-power-factor-l3" : {
+      "id" : "66249c05-d291-4bc0-830a-17180ccadd34",
+      "title" : "Maximum Power Factor L3",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 115,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "maximum-thd-voltage-l1-l2" : {
+      "id" : "fd6ace86-20ab-4a4b-a551-f4678eeb7194",
+      "title" : "Maximum THD Voltage L1-L2",
+      "unit" : "unit:PERCENT",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 117,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "maximum-thd-voltage-l2-l3" : {
+      "id" : "c6a4b4ca-aaf2-44ae-bbaf-405ae528f389",
+      "title" : "Maximum THD Voltage L2-L3",
+      "unit" : "unit:PERCENT",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 119,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "maximum-thd-voltage-l3-l1" : {
+      "id" : "e94c291d-e13c-43d5-9f74-4ef4d307608f",
+      "title" : "Maximum THD Voltage L3-L1",
+      "unit" : "unit:PERCENT",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 121,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "maximum-line-frequency" : {
+      "id" : "a48c12f7-49ec-410c-ad29-cd09eedd7861",
+      "title" : "Maximum Line Frequency",
+      "unit" : "unit:HZ",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 129,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "maximum-3-phase-average-voltage-l-n" : {
+      "id" : "ff4417c2-1700-4378-8925-83d4f0a6e159",
+      "title" : "Maximum 3-Phase Average Voltage L-N",
+      "unit" : "unit:V",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 131,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "maximum-3-phase-average-voltage-l-l" : {
+      "id" : "4ad85465-37cc-4481-9173-eaede2ca27f0",
+      "title" : "Maximum 3-Phase Average Voltage L-L",
+      "unit" : "unit:V",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 133,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "maximum-3-phase-average-voltage-l-l5059253743569486520" : {
+      "id" : "5a393e64-394f-42f1-813b-ee0b4a93adad",
+      "title" : "Maximum 3-Phase Average Voltage L-L",
+      "unit" : "unit:A",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 135,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "maximum-total-apparent-power" : {
+      "id" : "ea59f0b0-2d95-457f-afc7-d30added77d5",
+      "title" : "Maximum Total Apparent Power",
+      "unit" : "unit:V-A",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 137,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "maximum-total-active-power" : {
+      "id" : "a7989d5a-b175-47d0-87ea-ce8462c3f83f",
+      "title" : "Maximum Total Active Power",
+      "unit" : "unit:W",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 139,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "maximum-total-reactive-power-qn" : {
+      "id" : "5d22b98f-9d1e-4117-9cfe-01aaff1756d8",
+      "title" : "Maximum Total Reactive Power (Qn)",
+      "unit" : "unit:V-A_Reactive",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 141,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "maximum-total-power-factor" : {
+      "id" : "1e3d9f69-c5ec-463f-be85-cf9028ce756d",
+      "title" : "Maximum Total Power Factor",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 143,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "minimum-voltage-l1-n" : {
+      "id" : "e85a872f-3dc0-4915-b1f8-aaee644b5b9c",
+      "title" : "Minimum voltage L1-N",
+      "unit" : "unit:V",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 145,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "minimum-voltage-l2-n" : {
+      "id" : "915074f7-cd68-42b1-beea-de7855361d99",
+      "title" : "Minimum voltage L2 -N",
+      "unit" : "unit:V",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 147,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "minimum-voltage-l3-n" : {
+      "id" : "4d5e0174-b94e-4c38-a2cb-417d0006b7cc",
+      "title" : "Minimum Voltage L3-N",
+      "unit" : "unit:V",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 149,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "minimum-voltage-l1-l2" : {
+      "id" : "4fbf16a5-9568-4c83-a69e-7d08b2c532d6",
+      "title" : "Minimum voltage L1-L2",
+      "unit" : "unit:V",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 151,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "minimum-voltage-l2-l3" : {
+      "id" : "49180498-e10c-491b-8b59-eecc19908736",
+      "title" : "Minimum Voltage L2-L3",
+      "unit" : "unit:V",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 153,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "minimum-voltage-l3-l1" : {
+      "id" : "b24dcdd1-d7b2-4cd1-9ee5-1c011f82c589",
+      "title" : "Minimum Voltage L3-L1",
+      "unit" : "unit:V",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 155,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "minimum-current-l1" : {
+      "id" : "6b6a0377-2914-47d8-84c9-aadc922cea49",
+      "title" : "Minimum Current L1",
+      "unit" : "unit:A",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 157,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "minimum-current-l2" : {
+      "id" : "0d3a507c-8c62-4882-b38c-3fd7558e21e4",
+      "title" : "Minimum Current L2",
+      "unit" : "unit:A",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 159,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "minimum-current-l3" : {
+      "id" : "02d4f4dc-fb6c-4784-a303-9b6a41af0f41",
+      "title" : "Minimum Current L3",
+      "unit" : "unit:A",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 161,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "minimum-apparent-power-l1" : {
+      "id" : "dff0848f-31c2-4c49-bde1-e482033c0217",
+      "title" : "Minimum Apparent Power L1",
+      "unit" : "unit:V-A",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 163,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "minimum-apparent-power-l2" : {
+      "id" : "2e795e0c-e96b-496d-bc4f-9ae2fbd636d9",
+      "title" : "Minimum Apparent Power L2",
+      "unit" : "unit:V-A",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 165,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "minimum-apparent-power-l3" : {
+      "id" : "f36c90fe-49aa-414e-badf-14f9fc39ff93",
+      "title" : "Minimum Apparent Power L3",
+      "unit" : "unit:V-A",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 167,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "minimum-active-power-l1" : {
+      "id" : "8bc055d3-7e33-491b-ab35-653b17e8c8b4",
+      "title" : "Minimum Active Power L1",
+      "unit" : "unit:W",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 169,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "minimum-active-power-l2" : {
+      "id" : "f4dea8ff-1837-406c-aa64-b6946e63f31f",
+      "title" : "Minimum Active Power L2",
+      "unit" : "unit:W",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 171,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "minimum-active-power-l3" : {
+      "id" : "68831cd9-6b6e-4332-b4bb-bdd6f728db56",
+      "title" : "Minimum Active Power L3",
+      "unit" : "unit:W",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 173,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "minimum-reactive-power-l1-qn" : {
+      "id" : "bb18d487-3fc3-4633-938c-ad8deb08e938",
+      "title" : "Minimum Reactive Power L1 (Qn)",
+      "unit" : "unit:V-A_Reactive",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 175,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "minimum-reactive-power-l2-qn" : {
+      "id" : "5992306d-a09f-4ce9-84c7-d2a2225aeb2b",
+      "title" : "Minimum Reactive Power L2 (Qn)",
+      "unit" : "unit:V-A_Reactive",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 177,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "minimum-reactive-power-l3-qn" : {
+      "id" : "f8cfac49-e262-4570-90b8-92672b59122c",
+      "title" : "Minimum Reactive Power L3 (Qn)",
+      "unit" : "unit:V-A_Reactive",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 179,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "minimum-power-factor-l1" : {
+      "id" : "520b9b5c-a59e-4b5c-9501-47d7804a85ed",
+      "title" : "Minimum Power Factor L1",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 181,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "minimum-power-factor-l2" : {
+      "id" : "ead8324c-55d7-48da-ac99-3b8077f98daf",
+      "title" : "Minimum Power Factor L2",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 183,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "minimum-power-factor-l3" : {
+      "id" : "881204e0-79e8-48b1-981e-550283017f17",
+      "title" : "Minimum Power Factor L3",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 185,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "minimum-line-frequency" : {
+      "id" : "8f455083-c4b2-4ae1-9435-49b32995223f",
+      "title" : "Minimum Line Frequency",
+      "unit" : "unit:HZ",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 187,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "minimum-3-phase-average-voltage-l-n" : {
+      "id" : "4eb80b53-1da6-4327-b2cb-a4b8dc440a01",
+      "title" : "Minimum 3-Phase Average Voltage L-N",
+      "unit" : "unit:V",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 189,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "minimum-3-phase-average-voltage-l-l" : {
+      "id" : "4d61bbbe-1b24-4a46-bf40-3634ba8a9503",
+      "title" : "Minimum 3-Phase Average Voltage L-L",
+      "unit" : "unit:V",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 191,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "minimum-3-phase-average-current-l-l" : {
+      "id" : "c17c3242-e5a5-483b-bb58-0337b6d433cf",
+      "title" : "Minimum 3-Phase Average Current L-L",
+      "unit" : "unit:A",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 193,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "minimum-total-apparent-power" : {
+      "id" : "44ad58c4-6299-4455-a6c7-a9745378bde6",
+      "title" : "Minimum Total Apparent Power",
+      "unit" : "unit:V-A",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 195,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "minimum-total-active-power" : {
+      "id" : "443cedad-e4c2-4fc7-b95b-aea460657370",
+      "title" : "Minimum Total Active Power",
+      "unit" : "unit:W",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 197,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "minimum-total-reactive-power-varn" : {
+      "id" : "1d48bf15-9f40-4211-9362-27a0762e1db3",
+      "title" : "Minimum Total Reactive Power (VARn)",
+      "unit" : "unit:V-A_Reactive",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 199,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "minimum-total-power-factor" : {
+      "id" : "19f1e7f6-45f4-4752-8ac6-97e479e6cec7",
+      "title" : "Minimum Total Power Factor",
+      "unit" : "unit:V-A_Reactive",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 201,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "digital-outputs-status" : {
+      "id" : "6770d20e-5bb5-4b45-b588-1994738a5198",
+      "title" : "Digital Outputs* Status",
+      "type" : "integer",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 207,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "digital-inputs-status" : {
+      "id" : "8a1669c4-02d1-4127-a5c7-2a5056323ad1",
+      "title" : "Digital Inputs* Status",
+      "type" : "integer",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 209,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "active-tariff" : {
+      "id" : "7dd1a79a-06fc-45ec-a005-fa31f49ab521",
+      "title" : "Active Tariff",
+      "type" : "integer",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 211,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "operating-hours-counter2" : {
+      "id" : "4be7e8d5-960d-4a6e-9a07-5662728cd6c6",
+      "title" : "Operating hours counter2",
+      "type" : "integer",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 213,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      }, {
+        "op" : "writeproperty",
+        "modbus:address" : 213,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 16
+      } ]
+    },
+    "universal-counter2" : {
+      "id" : "39abfb66-3b52-494c-bb0c-123271b06c39",
+      "title" : "Universal counter2",
+      "type" : "integer",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 215,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      }, {
+        "op" : "writeproperty",
+        "modbus:address" : 215,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 16
+      } ]
+    },
+    "relevant-parameter-changes-counter" : {
+      "id" : "1bf35f19-872c-4cc7-9d59-c98b539ae81d",
+      "title" : "Relevant Parameter Changes Counter",
+      "type" : "integer",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 217,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "counter-all-parameter-changes" : {
+      "id" : "e4e44485-b064-45aa-b1aa-eb865c1a4f95",
+      "title" : "Counter All Parameter Changes",
+      "type" : "integer",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 219,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "counter-limit-violations" : {
+      "id" : "d0183933-5274-42c6-9c70-d2182744dd68",
+      "title" : "Counter Limit Violations",
+      "type" : "integer",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 221,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "event-counter" : {
+      "id" : "4914c8a1-df38-42e2-ae03-38b1c96c3ba1",
+      "title" : "Event Counter",
+      "type" : "integer",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 223,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "alarm-counter" : {
+      "id" : "97823a6e-6b18-401e-b17b-10951533ba7e",
+      "title" : "Alarm Counter",
+      "type" : "integer",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 225,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "load-profile-counter" : {
+      "id" : "0e71eae6-1ea6-4811-8e72-a283a8b87478",
+      "title" : "Load Profile Counter",
+      "type" : "integer",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 227,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "misc-counter" : {
+      "id" : "711b2aa7-f57a-483a-ae32-1b4d74102176",
+      "title" : "Misc. Counter",
+      "type" : "integer",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 229,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "status-digital-outputs-module-1" : {
+      "id" : "a1e8fe4a-de6b-4651-87c4-1d22470e352a",
+      "title" : "Status Digital Outputs Module 1",
+      "type" : "integer",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 231,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "status-digital-inputs-module-1" : {
+      "id" : "3c13aee7-a3cc-40d4-842d-c587dbe54049",
+      "title" : "Status Digital Inputs Module 1",
+      "type" : "integer",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 233,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "status-digital-outputs-module" : {
+      "id" : "2873c273-e22c-4f29-bb08-ce3e2514ff7f",
+      "title" : "Status Digital Outputs Module",
+      "type" : "integer",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 235,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "status-digital-inputs-module" : {
+      "id" : "3080636a-6a29-4cf8-8f68-f5e0320ee77b",
+      "title" : "Status Digital Inputs Module",
+      "type" : "integer",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 237,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "cos-l1" : {
+      "id" : "5f3f0009-0ad1-459c-b538-969a47758ba0",
+      "title" : "Cos φ L1",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 243,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "cos-l2" : {
+      "id" : "2d9cb313-5a85-442b-9131-3f8d98de7041",
+      "title" : "Cos φ L2",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 245,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "cos-l3" : {
+      "id" : "20dcd59c-adda-4254-889e-88b0b0815d85",
+      "title" : "Cos φ L3",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 247,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "displacement-angle-l1" : {
+      "id" : "ef221c7d-c469-4b6f-8b9c-17626d34ad77",
+      "title" : "Displacement Angle L1",
+      "unit" : "unit:DEG",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 249,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "displacement-angle-l2" : {
+      "id" : "d80c2c75-e510-4420-b232-6a99759b1121",
+      "title" : "Displacement Angle L2",
+      "unit" : "unit:DEG",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 251,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "displacement-angle-l3" : {
+      "id" : "bb4d7cb5-dd03-49b6-8c05-366478e53357",
+      "title" : "Displacement Angle L3",
+      "unit" : "unit:DEG",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 253,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "phase-angle-l1-l1" : {
+      "id" : "112f881f-f5e9-49b5-bd6b-c4554d8670bd",
+      "title" : "Phase Angle L1-L1",
+      "unit" : "unit:DEG",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 255,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "phase-angle-l1-l2" : {
+      "id" : "38073d3c-d678-4e7b-947d-bc990bbd64f0",
+      "title" : "Phase Angle L1- L2",
+      "unit" : "unit:DEG",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 257,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "phase-angle-l1-l3" : {
+      "id" : "bc7d3416-a7b0-4a2c-8053-ff4dbdd25f1c",
+      "title" : "Phase Angle L1- L3",
+      "unit" : "unit:DEG",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 259,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "thd-voltage-l1" : {
+      "id" : "7f86697d-8b29-4c0b-acfa-6d4762e67e98",
+      "title" : "THD voltage L1",
+      "unit" : "unit:PERCENT",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 261,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "thd-voltage-l2" : {
+      "id" : "7f687163-7037-4e2d-9421-59c0709cea7a",
+      "title" : "THD voltage L2",
+      "unit" : "unit:PERCENT",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 263,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "thd-voltage-l3" : {
+      "id" : "56abfb31-27fc-471d-a2b4-e681142b9c08",
+      "title" : "THD voltage L3",
+      "unit" : "unit:PERCENT",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 265,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "thd-current-l1" : {
+      "id" : "011f8237-7175-484f-b0d7-1cd7d3adc5de",
+      "title" : "THD current L1",
+      "unit" : "unit:PERCENT",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 267,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "thd-current-l2" : {
+      "id" : "edf4afd6-905f-4f9a-a7c1-d2c27ba5c240",
+      "title" : "THD current L2",
+      "unit" : "unit:PERCENT",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 269,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "thd-current-l3" : {
+      "id" : "c735846e-6e7f-4944-9c17-d12bf7a9b44d",
+      "title" : "THD current L3",
+      "unit" : "unit:PERCENT",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 271,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "distortion-current-l1" : {
+      "id" : "a8e90a7f-5f85-4d07-9fc4-8744c22669d6",
+      "title" : "Distortion current L1",
+      "unit" : "unit:A",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 273,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "distortion-current-l2" : {
+      "id" : "a526f96a-4554-4f91-a838-83b494fa6e08",
+      "title" : "Distortion current L2",
+      "unit" : "unit:A",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 275,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "distortion-current-l3" : {
+      "id" : "b726ccb3-8752-4501-91af-cf91834399be",
+      "title" : "Distortion current L3",
+      "unit" : "unit:A",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 277,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "total-reactive-power-l1-qtot" : {
+      "id" : "6107ca08-c3d6-49c1-96c4-43538eaa514c",
+      "title" : "Total Reactive Power L1 (Qtot)",
+      "unit" : "unit:V-A_Reactive",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 279,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "total-reactive-power-l2-qtot" : {
+      "id" : "fed6038e-5575-4f8d-a252-6480493c2e31",
+      "title" : "Total Reactive Power L2 (Qtot)",
+      "unit" : "unit:V-A_Reactive",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 281,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "total-reactive-power-l3-qtot" : {
+      "id" : "d6386db8-fe52-418b-b3aa-561cc2770ee6",
+      "title" : "Total Reactive Power L3 (Qtot)",
+      "unit" : "unit:V-A_Reactive",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 283,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "reactive-power-l1-q1" : {
+      "id" : "c1987c8a-8137-409c-b4fa-32dd33d788b0",
+      "title" : "Reactive power L1 (Q1)",
+      "unit" : "unit:V-A_Reactive",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 285,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "reactive-power-l1-q15749075267354720182" : {
+      "id" : "6ac98674-97ef-4316-835c-62cb32dcaaba",
+      "title" : "Reactive power L1 (Q1)",
+      "unit" : "unit:V-A_Reactive",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 287,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "reactive-power-l1-q11687866958151890497" : {
+      "id" : "555e06cf-0668-4750-b512-37377fe2b34f",
+      "title" : "Reactive power L1 (Q1)",
+      "unit" : "unit:V-A_Reactive",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 289,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "unbalance-voltage" : {
+      "id" : "98fd7fc5-6b9e-42dd-8c5f-9adde5977241",
+      "title" : "Unbalance Voltage",
+      "unit" : "unit:PERCENT",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 291,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "unbalance-current" : {
+      "id" : "bc552268-684c-4589-89a4-15c253a3dba3",
+      "title" : "Unbalance Current",
+      "unit" : "unit:PERCENT",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 293,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "neutral-current" : {
+      "id" : "acd018f4-1ffc-4678-b459-3b72008e496a",
+      "title" : "Neutral Current",
+      "unit" : "unit:A",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 295,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "total-reactive-power-qtot" : {
+      "id" : "53f85ff3-2b92-4c90-ac24-180f1bb2000c",
+      "title" : "Total Reactive Power (Qtot)",
+      "unit" : "unit:V-A_Reactive",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 297,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "total-reactive-power-var1" : {
+      "id" : "64942680-32b8-4bb7-8656-55e3ea63d9c1",
+      "title" : "Total Reactive Power (VAR1)",
+      "unit" : "unit:V-A_Reactive",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 299,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "sliding-window-demand-voltage-l1-n" : {
+      "id" : "81894737-654b-4c0c-b41c-0cfcab4f1ab2",
+      "title" : "Sliding Window Demand Voltage L1-N",
+      "unit" : "unit:V",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 301,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "sliding-window-demand-voltage-l2-n" : {
+      "id" : "802c47b0-7966-43f9-9a02-ab66d59cec7f",
+      "title" : "Sliding Window Demand Voltage L2-N",
+      "unit" : "unit:V",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 303,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "sliding-window-demand-voltage-l3-n" : {
+      "id" : "700253b4-0e0c-4b7d-bdf0-11a797ea70a9",
+      "title" : "Sliding Window Demand Voltage L3-N",
+      "unit" : "unit:V",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 305,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "sliding-window-demand-voltage-l1-l2" : {
+      "id" : "7e3f8b83-6f08-4c13-ad0b-21e0cd82ad1e",
+      "title" : "Sliding Window Demand Voltage L1-L2",
+      "unit" : "unit:V",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 307,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "sliding-window-demand-voltage-l2-l3" : {
+      "id" : "05683401-bdbc-41c6-9108-ff6a17ada440",
+      "title" : "Sliding Window Demand Voltage L2-L3",
+      "unit" : "unit:V",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 309,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "sliding-window-demand-voltage-l3-l1" : {
+      "id" : "3f5e288c-c2a9-4afc-b5a4-20e7dd6e7775",
+      "title" : "Sliding Window Demand Voltage L3-L1",
+      "unit" : "unit:V",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 311,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "sliding-window-demand-current-l1" : {
+      "id" : "6cee5e64-4e86-4c9e-bb6d-761f979dad83",
+      "title" : "Sliding Window Demand Current L1",
+      "unit" : "unit:A",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 313,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "sliding-window-demand-current-l2" : {
+      "id" : "e92e48ed-3c4f-4c8f-a847-27e20a24de59",
+      "title" : "Sliding Window Demand Current L2",
+      "unit" : "unit:A",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 315,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "sliding-window-demand-current-l3" : {
+      "id" : "aba236bd-dee5-4516-92c0-50d1fd52939b",
+      "title" : "Sliding Window Demand Current L3",
+      "unit" : "unit:A",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 317,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "sliding-window-demand-apparent-power-l1" : {
+      "id" : "d4f960ed-724a-424a-8bd6-1649b1395cee",
+      "title" : "Sliding Window Demand Apparent Power L1",
+      "unit" : "unit:V-A",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 319,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "sliding-window-demand-apparent-power-l2" : {
+      "id" : "fc2e4082-08b9-4ddd-906f-6ed36f92be45",
+      "title" : "Sliding Window Demand Apparent Power L2",
+      "unit" : "unit:V-A",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 321,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "sliding-window-demand-apparent-power-l3" : {
+      "id" : "4038359e-0f8e-4bc9-bcb6-962194e9866a",
+      "title" : "Sliding Window Demand Apparent Power L3",
+      "unit" : "unit:V-A",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 323,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "sliding-window-demand-active-power-l1" : {
+      "id" : "0b8cb547-2c37-4689-8715-760dbed4f264",
+      "title" : "Sliding Window Demand Active Power L1",
+      "unit" : "unit:W",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 325,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "sliding-window-demand-active-power-l2" : {
+      "id" : "663a2108-cbbd-4a93-bce5-9f69ee65f9ea",
+      "title" : "Sliding Window Demand Active Power L2",
+      "unit" : "unit:W",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 327,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "sliding-window-demand-active-power-l3" : {
+      "id" : "93837c20-2b3e-49b9-8cef-2100cd945f7e",
+      "title" : "Sliding Window Demand Active Power L3",
+      "unit" : "unit:W",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 329,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "sliding-window-demand-reactive-power-l1-qn" : {
+      "id" : "84dcd768-c64b-4328-9949-86dbe47130c7",
+      "title" : "Sliding Window Demand Reactive Power L1 (Qn)",
+      "unit" : "unit:V-A_Reactive",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 331,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "sliding-window-demand-reactive-power-l2-qn" : {
+      "id" : "f3e4150a-41ea-45f0-8389-198a1a5c2fbc",
+      "title" : "Sliding Window Demand Reactive Power L2 (Qn)",
+      "unit" : "unit:V-A_Reactive",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 333,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "sliding-window-demand-reactive-power-l3-qn" : {
+      "id" : "7f200d37-087e-4c52-8360-afef5fdd5131",
+      "title" : "Sliding Window Demand Reactive Power L3 (Qn)",
+      "unit" : "unit:V-A_Reactive",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 335,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "sliding-window-demand-total-reactive-power-l1-qtot" : {
+      "id" : "19911048-465d-4413-bbb2-7c7f95311150",
+      "title" : "Sliding Window Demand Total Reactive Power L1 (Qtot)",
+      "unit" : "unit:V-A_Reactive",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 337,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "sliding-window-demand-total-reactive-power-l2-qtot" : {
+      "id" : "047c76d6-22e0-479f-81bc-1a819d7a9a6f",
+      "title" : "Sliding Window Demand Total Reactive Power L2 (Qtot)",
+      "unit" : "unit:V-A_Reactive",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 339,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "sliding-window-demand-total-reactive-power-l3-qtot" : {
+      "id" : "33cd93bb-7360-4aab-85ab-3628d85c922e",
+      "title" : "Sliding Window Demand Total Reactive Power L3 (Qtot)",
+      "unit" : "unit:V-A_Reactive",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 341,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "sliding-window-demand-reactive-power-l1-q1" : {
+      "id" : "5b148884-eb4a-4c2c-97c2-c984b4bc2e7e",
+      "title" : "Sliding Window Demand Reactive Power L1 (Q1)",
+      "unit" : "unit:V-A_Reactive",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 343,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "sliding-window-demand-reactive-power-l2-q1" : {
+      "id" : "f6fbc5c5-91ef-497a-bbfa-040b38e9ac78",
+      "title" : "Sliding Window Demand Reactive Power L2 (Q1)",
+      "unit" : "unit:V-A_Reactive",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 345,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "sliding-window-demand-reactive-power-l3-q1" : {
+      "id" : "dee1464b-90cd-448a-8e0a-eec147b7ced2",
+      "title" : "Sliding Window Demand Reactive Power L3 (Q1)",
+      "unit" : "unit:V-A_Reactive",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 347,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "sliding-window-demand-power-factor-l1" : {
+      "id" : "58bc3f86-f484-4a2e-b471-ca3306acd1ac",
+      "title" : "Sliding Window Demand Power Factor L1",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 349,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "sliding-window-demand-power-factor-l2" : {
+      "id" : "fc49eefa-716d-4a2d-bd85-7e39b56ed07f",
+      "title" : "Sliding Window Demand Power Factor L2",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 351,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "sliding-window-demand-power-factor-l3" : {
+      "id" : "e26b0b68-2a84-440c-b03a-f0b4db5eeedd",
+      "title" : "Sliding Window Demand Power Factor L3",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 353,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "sliding-window-demand-total-apparent-power" : {
+      "id" : "c497eb81-d926-4fc6-8e1b-f0b91f428834",
+      "title" : "Sliding Window Demand Total Apparent Power",
+      "unit" : "unit:V-A",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 355,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "sliding-window-demand-total-active-power" : {
+      "id" : "7d51335c-fe28-4c49-92f5-b0c2ba33bea8",
+      "title" : "Sliding Window Demand Total Active Power",
+      "unit" : "unit:W",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 357,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "sliding-window-demand-total-reactive-power-qn" : {
+      "id" : "7313d9de-a9ef-493e-9324-0d4e08319330",
+      "title" : "Sliding Window Demand Total Reactive Power (Qn)",
+      "unit" : "unit:V-A_Reactive",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 359,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "sliding-window-demand-total-reactive-power-qtot" : {
+      "id" : "513dd859-38e0-4b44-8e67-7c1e755784a5",
+      "title" : "Sliding Window Demand Total Reactive Power (Qtot)",
+      "unit" : "unit:V-A_Reactive",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 361,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "sliding-window-demand-total-reactive-power-q1" : {
+      "id" : "ddfeec2c-93f6-46f2-993c-03f2cd2c22e6",
+      "title" : "Sliding Window Demand Total Reactive Power (Q1)",
+      "unit" : "unit:V-A_Reactive",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 363,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "sliding-window-demand-total-power-factor" : {
+      "id" : "fea4abc8-3764-4356-8d54-0da41cc7ae12",
+      "title" : "Sliding Window Demand Total Power Factor",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 365,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "sliding-window-demand-neutral-current" : {
+      "id" : "634dcd7a-674d-4fec-9ece-6fce2bd872c7",
+      "title" : "Sliding Window Demand Neutral Current",
+      "unit" : "unit:A",
+      "type" : "number",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 367,
+        "modbus:dataType" : "float32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      } ]
+    },
+    "process-operating-hours-counter" : {
+      "id" : "70e659be-416f-4717-8e52-d746efc65f34",
+      "title" : "Process operating hours counter",
+      "unit" : "unit:SEC",
+      "type" : "integer",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 369,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      }, {
+        "op" : "writeproperty",
+        "modbus:address" : 369,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 16
+      } ]
+    },
+    "universal-counter-2" : {
+      "id" : "4cd1e2ec-60b2-42e0-a1c4-c925e9b571b4",
+      "title" : "Universal counter 2",
+      "type" : "integer",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 371,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      }, {
+        "op" : "writeproperty",
+        "modbus:address" : 371,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 16
+      } ]
+    },
+    "pulse-counter-0" : {
+      "id" : "6f4fa687-5fab-4ba1-b3f6-a8bad6d8b4dc",
+      "title" : "Pulse counter 0",
+      "type" : "integer",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 373,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      }, {
+        "op" : "writeproperty",
+        "modbus:address" : 373,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 16
+      } ]
+    },
+    "pulse-counter-02" : {
+      "id" : "8f82aa8b-e172-4771-967b-8a6f203ba01a",
+      "title" : "Pulse counter 02",
+      "type" : "integer",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 375,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      }, {
+        "op" : "writeproperty",
+        "modbus:address" : 375,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 16
+      } ]
+    },
+    "pulse-counter-03" : {
+      "id" : "194667f5-7d29-4de7-a185-ccf551b201fb",
+      "title" : "Pulse counter 03",
+      "type" : "integer",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 377,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      }, {
+        "op" : "writeproperty",
+        "modbus:address" : 377,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 16
+      } ]
+    },
+    "pulse-counter-04" : {
+      "id" : "efb1a717-db79-40c5-bb9a-992ea9b6a0f2",
+      "title" : "Pulse counter 04",
+      "type" : "integer",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 379,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      }, {
+        "op" : "writeproperty",
+        "modbus:address" : 379,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 16
+      } ]
+    },
+    "pulse-counter-05" : {
+      "id" : "abacc992-f894-4840-b20d-d9f6886b3490",
+      "title" : "Pulse counter 05",
+      "type" : "integer",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 381,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      }, {
+        "op" : "writeproperty",
+        "modbus:address" : 381,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 16
+      } ]
+    },
+    "pulse-counter-06" : {
+      "id" : "3706818b-d06d-4f26-9f25-33577c437428",
+      "title" : "Pulse counter 06",
+      "type" : "integer",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 383,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      }, {
+        "op" : "writeproperty",
+        "modbus:address" : 383,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 16
+      } ]
+    },
+    "pulse-counter-07" : {
+      "id" : "f91cc33b-08cb-472a-aeb7-e31f763905d5",
+      "title" : "Pulse counter 07",
+      "type" : "integer",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 385,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      }, {
+        "op" : "writeproperty",
+        "modbus:address" : 385,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 16
+      } ]
+    },
+    "pulse-counter-08" : {
+      "id" : "c6fab9d9-1d14-474f-ae3e-d68ac6b9e456",
+      "title" : "Pulse counter 08",
+      "type" : "integer",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 387,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      }, {
+        "op" : "writeproperty",
+        "modbus:address" : 387,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 16
+      } ]
+    },
+    "pulse-counter-09" : {
+      "id" : "fb29ae53-e59d-48b0-a41e-d7f5d9df35a6",
+      "title" : "Pulse counter 09",
+      "type" : "integer",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 389,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      }, {
+        "op" : "writeproperty",
+        "modbus:address" : 389,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 16
+      } ]
+    },
+    "pulse-counter-10" : {
+      "id" : "e9f3d276-04be-4788-aef9-94a1a9369374",
+      "title" : "Pulse counter 10",
+      "type" : "integer",
+      "forms" : [ {
+        "op" : "readproperty",
+        "modbus:address" : 391,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 3
+      }, {
+        "op" : "writeproperty",
+        "modbus:address" : 391,
+        "modbus:dataType" : "uint32",
+        "modbus:endianness" : "big_abcd",
+        "modbus:entity" : "HoldingRegister",
+        "modbus:function" : 16
+      } ]
+    }
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "@context": [
+    "https://www.w3.org/2022/wot/td/v1.1",
+    {
+      "lorav": "https://www.w3.org/2024/wot/lorawan#",
+      "schema": "https://schema.org/"
+    }
+  ],
+  "@type": "Thing",
+  "id": "urn:dev:example:generic-lorawan11",
+  "title": "generic_lorawan11_sensor",
+  "description": "Generic LoRaWAN 1.1 sensor demonstrating OTAA with both AppKey and NwkKey (fixed binary uplink layout).",
+  "securityDefinitions": {
+    "appkey_sc": {
+      "scheme": "apikey",
+      "in": "uri",
+      "name": "appKey",
+      "description": "LoRaWAN OTAA AppKey (root key). Injected at runtime; never stored in this TD."
+    },
+    "nwkkey_sc": {
+      "scheme": "apikey",
+      "in": "uri",
+      "name": "nwkKey",
+      "description": "LoRaWAN 1.1 OTAA NwkKey (network root key, required for MAC version 1.1.x). Injected at runtime; never stored in this TD."
+    }
+  },
+  "security": [
+    "appkey_sc",
+    "nwkkey_sc"
+  ],
+  "base": "lorawan://70B3D57ED0050001/{appKey}/{nwkKey}/device",
+  "lorav:devEUI": "70B3D57ED0050001",
+  "lorav:joinEUI": "0000000000000001",
+  "lorav:macVersion": "1.1.0",
+  "schema:manufacturer": "Example",
+  "schema:mpn": "GLW11",
+  "schema:version": "1.0",
+  "schema:softwareVersion": "1.0",
+  "lorav:region": "EU868",
+  "lorav:frequencyPlan": "EU_863_870",
+  "lorav:payloadLayout": "fixed",
+  "events": {
+    "battery": {
+      "description": "Battery level as a percentage.",
+      "data": {
+        "type": "integer",
+        "unit": "%",
+        "minimum": 0,
+        "maximum": 100
+      },
+      "forms": [
+        {
+          "href": "uplink",
+          "op": [
+            "subscribeevent",
+            "unsubscribeevent"
+          ],
+          "lorav:byteOffset": 0,
+          "lorav:wireType": "xsd:unsignedByte"
+        }
+      ]
+    },
+    "temperature": {
+      "data": {
+        "type": "number",
+        "unit": "Cel"
+      },
+      "forms": [
+        {
+          "href": "uplink",
+          "op": [
+            "subscribeevent",
+            "unsubscribeevent"
+          ],
+          "lorav:byteOffset": 1,
+          "lorav:wireType": "xsd:short",
+          "lorav:multiplier": 0.1
+        }
+      ]
+    }
+  }
+}
