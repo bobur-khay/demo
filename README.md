@@ -2,23 +2,30 @@
 
 1. Copy the example environment file:
 
-	```bash
-	cp .env.example .env
-	```
+   ```bash
+   cp .env.example .env
+   ```
 
-2. Start the FastAPI server:
+2. Install the server dependencies:
 
-	```bash
-	cd server
-	./.venv/bin/python -m uvicorn app.main:app --reload
-	```
+   ```bash
+   cd server
+   python -m venv .venv
+   ./.venv/bin/python -m pip install -r requirements.txt
+   ```
 
-3. Start the client in another terminal:
+3. Start the FastAPI server:
 
-	```bash
-	cd client
-	npm ci
-	npm run dev
-	```
+   ```bash
+   ./.venv/bin/python -m uvicorn app.main:app --reload
+   ```
 
-4. Open `http://localhost:5173` and check that the live metrics are updating correctly.
+4. Install the client dependencies and start it in another terminal:
+
+   ```bash
+   cd client
+   npm ci
+   npm run dev
+   ```
+
+5. Open `http://localhost:5173` and check that the live metrics are updating correctly.
