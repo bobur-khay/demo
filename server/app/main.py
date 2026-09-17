@@ -4,7 +4,7 @@ import asyncio
 import logging
 import os
 from contextlib import asynccontextmanager, suppress
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from time import monotonic
 from typing import AsyncGenerator
@@ -12,6 +12,7 @@ from typing import AsyncGenerator
 from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
+from pydantic import BaseModel
 
 from .services import (
     DataSource,
@@ -96,6 +97,17 @@ class Runtime:
     source: DataSource
     influx: InfluxRepository | None
     influx_status: str = "disabled"
+    detached: set[str] = field(default_factory=set)
+
+    def is_connected(self, device_id: str) -> bool:
+        return device_id not in self.detached
+
+    def connected_devices(self) -> list[DeviceDefinition]:
+        return [device for device in self.devices.values() if self.is_connected(device.id)]
+
+
+class ConnectionRequest(BaseModel):
+    connected: bool
 
 
 def _create_data_source(settings: Settings) -> DataSource:
@@ -116,12 +128,13 @@ def _device_payload(device: DeviceDefinition) -> dict[str, object]:
 async def _poll_forever(runtime: Runtime) -> None:
     while True:
         started_at = monotonic()
+        active = runtime.connected_devices()
         results = await asyncio.gather(
-            *(runtime.source.read(device) for device in runtime.devices.values()),
+            *(runtime.source.read(device) for device in active),
             return_exceptions=True,
         )
         points = []
-        for device, result in zip(runtime.devices.values(), results):
+        for device, result in zip(active, results):
             if isinstance(result, BaseException):
                 logger.warning("Unable to read %s: %s", device.id, result)
                 continue
@@ -176,7 +189,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 
 app = FastAPI(
-    title="WoT Operations Dashboard API",
+    title="WoT Devices Dashboard API",
     version="1.0.0",
     lifespan=lifespan,
 )
@@ -184,7 +197,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=Settings.from_environment().cors_origins,
     allow_credentials=True,
-    allow_methods=["GET"],
+    allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
 
@@ -208,19 +221,40 @@ async def health() -> dict[str, object]:
         "dataSource": runtime.settings.data_source,
         "influx": runtime.influx_status,
         "deviceCount": len(runtime.devices),
+        "connectedCount": len(runtime.connected_devices()),
         "pollIntervalSeconds": runtime.settings.poll_interval_seconds,
     }
+
+
+async def _device_state(runtime: Runtime, device: DeviceDefinition) -> dict[str, object]:
+    item = _device_payload(device)
+    connected = runtime.is_connected(device.id)
+    item["connected"] = connected
+    # A detached device is no longer polled, so it reports no current readings.
+    item["latest"] = await runtime.store.latest(device.id) if connected else {}
+    return item
 
 
 @app.get("/api/devices")
 async def devices() -> list[dict[str, object]]:
     runtime = _runtime()
-    payload = []
-    for device in runtime.devices.values():
-        item = _device_payload(device)
-        item["latest"] = await runtime.store.latest(device.id)
-        payload.append(item)
-    return payload
+    return [await _device_state(runtime, device) for device in runtime.devices.values()]
+
+
+@app.post("/api/devices/{device_id}/connection")
+async def set_device_connection(
+    device_id: str, request: ConnectionRequest
+) -> dict[str, object]:
+    device = _device_or_404(device_id)
+    runtime = _runtime()
+    if request.connected:
+        runtime.detached.discard(device.id)
+    else:
+        runtime.detached.add(device.id)
+    logger.info(
+        "Device %s is now %s", device.id, "connected" if request.connected else "detached"
+    )
+    return await _device_state(runtime, device)
 
 
 @app.get("/api/devices/{device_id}/history")
@@ -250,6 +284,9 @@ async def device_stream(websocket: WebSocket, device_id: str) -> None:
     runtime = _runtime()
     if device_id not in runtime.devices:
         await websocket.close(code=4404, reason="Device not found")
+        return
+    if not runtime.is_connected(device_id):
+        await websocket.close(code=4409, reason="Device detached")
         return
     await websocket.accept()
     await websocket.send_json(

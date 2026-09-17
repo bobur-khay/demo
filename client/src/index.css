@@ -1,41 +1,128 @@
+/**
+ * Eclipse Thingweb design tokens (thingweb.io), dark theme mapping.
+ */
 :root {
-  font-family: Bahnschrift, "Trebuchet MS", sans-serif;
-  color: #202522;
-  background: #eef1ee;
+  --neutral-clr-50: #1a1a1a;
+  --neutral-clr-75: #1e1e1e;
+  --neutral-clr-100: #232424;
+  --neutral-clr-200: #4c4d4c;
+  --neutral-clr-300: #656666;
+  --neutral-clr-400: #7e807f;
+  --neutral-clr-500: #979999;
+  --neutral-clr-600: #b1b3b3;
+  --neutral-clr-700: #cacccc;
+  --neutral-clr-800: #e4e6e6;
+  --neutral-clr-900: #fffffe;
+
+  --canvas-clr: #141414;
+  --surface-clr: #1e1e1e;
+  --surface-raised-clr: #232424;
+  --border-clr: #2e2f2f;
+  --border-strong-clr: #4c4d4c;
+  --box-shadow-clr: rgba(0, 0, 0, 0.35);
+
+  --clr-primary: #33b8a4;
+  --clr-primary-dark: #2ea694;
+  --clr-primary-darker: #2b9c8b;
+  --clr-primary-darkest: #248173;
+  --clr-primary-light: #3ac8b3;
+  --clr-primary-lighter: #43cbb7;
+  --clr-primary-lightest: #5fd3c1;
+
+  --clr-secondary: #d65cab;
+  --clr-secondary-dark: #d0449e;
+  --clr-secondary-darkest: #ab2b7e;
+  --clr-secondary-lightest: #e8a5d1;
+
+  --clr-success: var(--clr-primary);
+  --clr-warning: #e09f3e;
+  --clr-danger: #e2586a;
+  --clr-danger-dark: #c4384f;
+
+  /* Font families */
+  --ff-hero: "Bebas Neue", sans-serif;
+  --ff-primary: "Josefin Sans", sans-serif;
+  --ff-secondary: "Fira Mono", monospace;
+
+  /* Font weights */
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-bold: 700;
+
+  /* Font sizes */
+  --fs-h1: clamp(2rem, 1.714rem + 1.428vw, 3rem);
+  --fs-h2: clamp(1.5rem, 1.357rem + 0.714vw, 2rem);
+  --fs-h3: clamp(1.25rem, 1.178rem + 0.357vw, 1.5rem);
+  --fs-body-lg: 1.125rem;
+  --fs-body: 1rem;
+  --fs-body-sm: 0.875rem;
+  --fs-body-xs: 0.75rem;
+  --fs-body-2xs: 0.6875rem;
+
+  /* Line heights */
+  --lh-h1: calc(var(--fs-h1) * 1.1);
+  --lh-h2: calc(var(--fs-h2) * 1.1);
+  --lh-h3: calc(var(--fs-h3) * 1.1);
+  --lh-body: 1.5;
+
+  /* Letter spacing */
+  --ls-header: 1px;
+  --ls-subheader: -0.5px;
+
+  /* Radii — matches the 10px brand button radius */
+  --radius: 10px;
+  --radius-sm: 6px;
+  --radius-pill: 999px;
+
+  font-family: var(--ff-secondary);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  color: var(--neutral-clr-900);
+  background: var(--canvas-clr);
+  color-scheme: dark;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-  --color-primary: #087f78;
-  --color-secondary: #d79721;
-  --color-neutral: #68716c;
-  --color-success: #17805f;
-  --color-danger: #b83e35;
-  --neutral-clr-50: #f8faf8;
 }
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 html {
   min-width: 320px;
-  background: #eef1ee;
+  scroll-behavior: smooth;
+  background: var(--canvas-clr);
 }
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  font-family: var(--ff-secondary);
+  color: var(--neutral-clr-900);
+  background: var(--canvas-clr);
+}
+h1,
+h2,
+h3 {
+  font-family: var(--ff-primary);
+  font-weight: var(--fw-bold);
 }
 button,
 select {
-  font: inherit;
+  font-family: var(--ff-secondary);
+  font-size: inherit;
 }
-button {
-  letter-spacing: 0;
-}
-button:focus-visible {
-  outline: 2px solid #087f78;
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--clr-primary);
   outline-offset: 2px;
 }
 #root {
   min-height: 100vh;
+}
+::selection {
+  color: var(--neutral-clr-50);
+  background: var(--clr-primary);
 }

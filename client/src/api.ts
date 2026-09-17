@@ -22,6 +22,7 @@ export interface DeviceDefinition {
   id: string;
   title: string;
   description: string;
+  connected: boolean;
   metrics: MetricDefinition[];
   latest: Record<string, TelemetryPoint>;
 }
@@ -31,6 +32,7 @@ export interface HealthStatus {
   dataSource: "mock" | "wot";
   influx: "disabled" | "connected" | "error";
   deviceCount: number;
+  connectedCount: number;
   pollIntervalSeconds: number;
 }
 
@@ -44,8 +46,12 @@ const API_BASE_URL = (
   (import.meta.env.PROD ? window.location.origin : "http://localhost:8000")
 ).replace(/\/$/, "");
 
-async function request<T>(path: string, signal?: AbortSignal): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`, { signal });
+async function request<T>(
+  path: string,
+  signal?: AbortSignal,
+  init?: RequestInit,
+): Promise<T> {
+  const response = await fetch(`${API_BASE_URL}${path}`, { ...init, signal });
   if (!response.ok) {
     throw new Error(`API request failed (${response.status})`);
   }
@@ -58,6 +64,22 @@ export function getHealth(signal?: AbortSignal) {
 
 export function getDevices(signal?: AbortSignal) {
   return request<DeviceDefinition[]>("/api/devices", signal);
+}
+
+export function setDeviceConnection(
+  deviceId: string,
+  connected: boolean,
+  signal?: AbortSignal,
+) {
+  return request<DeviceDefinition>(
+    `/api/devices/${encodeURIComponent(deviceId)}/connection`,
+    signal,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ connected }),
+    },
+  );
 }
 
 export function getDeviceHistory(

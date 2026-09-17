@@ -6,17 +6,22 @@ import {
   Cloud,
   Droplets,
   Gauge,
+  LayoutDashboard,
+  Plug,
   Radio,
   RefreshCw,
   Server,
   Thermometer,
+  Unplug,
   Waves,
   Zap,
+  type LucideIcon,
 } from "lucide-react";
 import {
   getDeviceHistory,
   getDevices,
   getHealth,
+  setDeviceConnection,
   type DeviceDefinition,
   type HealthStatus,
   type MetricDefinition,
@@ -24,19 +29,64 @@ import {
 } from "./api";
 import { useDeviceStream, type StreamStatus } from "./useDeviceStream";
 import "./App.css";
+import thingwebLogo from "../public/thingweb-logo.png";
 
 type RangeDays = 1 | 7 | 30;
 type PhaseGroup = "voltage" | "current" | "power";
+type View = "dashboard" | "device";
 
 const TrendChart = lazy(() => import("./TrendChart"));
 const EMPTY_LATEST: Record<string, TelemetryPoint> = {};
 const EMPTY_HISTORY: Record<string, TelemetryPoint[]> = {};
-const CHART_COLORS = ["#087f78", "#d79721", "#315e8a", "#b84c3f"];
+const CHART_COLORS = ["#33b8a4", "#d65cab", "#e09f3e", "#5fd3c1"];
 const PHASE_GROUPS: Record<PhaseGroup, string[]> = {
   voltage: ["voltage-l1-n", "voltage-l2-n", "voltage-l3-n"],
   current: ["current-l1", "current-l2", "current-l3"],
   power: ["apparent-power-l1", "apparent-power-l2", "apparent-power-l3"],
 };
+const MEASUREMENT_GROUPS: {
+  key: string;
+  label: string;
+  icon: LucideIcon;
+  match: (name: string) => boolean;
+}[] = [
+  {
+    key: "temperature",
+    label: "Temperature",
+    icon: Thermometer,
+    match: (name) => name.includes("temperature"),
+  },
+  {
+    key: "humidity",
+    label: "Humidity",
+    icon: Droplets,
+    match: (name) => name.includes("humidity"),
+  },
+  {
+    key: "battery",
+    label: "Battery",
+    icon: BatteryMedium,
+    match: (name) => name.includes("battery"),
+  },
+  {
+    key: "voltage",
+    label: "Voltage",
+    icon: Zap,
+    match: (name) => name.startsWith("voltage"),
+  },
+  {
+    key: "current",
+    label: "Current",
+    icon: Activity,
+    match: (name) => name.startsWith("current"),
+  },
+  {
+    key: "power",
+    label: "Power",
+    icon: Gauge,
+    match: (name) => name.includes("power"),
+  },
+];
 
 function normalizeUnit(unit: string | null) {
   const units: Record<string, string> = {
@@ -129,6 +179,70 @@ function buildChartData(
   );
 }
 
+function lastSeen(device: DeviceDefinition) {
+  return Object.values(device.latest)
+    .map((point) => point.timestamp)
+    .sort()
+    .at(-1);
+}
+
+interface MeasurementAverage {
+  key: string;
+  label: string;
+  icon: LucideIcon;
+  unit: string | null;
+  average: number;
+  signalCount: number;
+  deviceCount: number;
+}
+
+function buildAverages(devices: DeviceDefinition[]): MeasurementAverage[] {
+  const buckets = new Map<
+    string,
+    Omit<MeasurementAverage, "average" | "deviceCount"> & {
+      total: number;
+      deviceIds: Set<string>;
+    }
+  >();
+
+  devices.forEach((device) => {
+    device.metrics.forEach((metric) => {
+      const group = MEASUREMENT_GROUPS.find((candidate) =>
+        candidate.match(metric.name.toLowerCase()),
+      );
+      const value = device.latest[metric.name]?.value;
+      if (!group || typeof value !== "number" || !Number.isFinite(value)) {
+        return;
+      }
+      // Same quantity reported in different units must not be averaged together.
+      const key = `${group.key}|${normalizeUnit(metric.unit)}`;
+      const bucket = buckets.get(key) || {
+        key,
+        label: group.label,
+        icon: group.icon,
+        unit: metric.unit,
+        total: 0,
+        signalCount: 0,
+        deviceIds: new Set<string>(),
+      };
+      bucket.total += value;
+      bucket.signalCount += 1;
+      bucket.deviceIds.add(device.id);
+      buckets.set(key, bucket);
+    });
+  });
+
+  return [...buckets.values()].map((bucket) => ({
+    key: bucket.key,
+    label: bucket.label,
+    icon: bucket.icon,
+    unit: bucket.unit,
+    average: bucket.total / bucket.signalCount,
+    signalCount: bucket.signalCount,
+    deviceCount: bucket.deviceIds.size,
+  }));
+}
+
 function StatusDot({ status }: { status: StreamStatus }) {
   return <span className={`status-dot ${status}`} aria-hidden="true" />;
 }
@@ -144,8 +258,9 @@ function App() {
   const [error, setError] = useState<string>();
   const [rangeDays, setRangeDays] = useState<RangeDays>(7);
   const [phaseGroup, setPhaseGroup] = useState<PhaseGroup>("voltage");
+  const [view, setView] = useState<View>("dashboard");
+  const [pendingIds, setPendingIds] = useState<string[]>([]);
   const eventRef = useRef<HTMLUiEventElement>(null);
-  const notificationRef = useRef<HTMLUiNotificationElement>(null);
   const lastLeakEvent = useRef<string | undefined>(undefined);
 
   useEffect(() => {
@@ -182,10 +297,31 @@ function App() {
     };
   }, []);
 
+  useEffect(() => {
+    if (view !== "dashboard") return;
+    const controller = new AbortController();
+    const interval = window.setInterval(() => {
+      void getDevices(controller.signal)
+        .then(setDevices)
+        .catch(() => undefined);
+    }, 10000);
+    return () => {
+      controller.abort();
+      window.clearInterval(interval);
+    };
+  }, [view]);
+
   const selectedDevice = devices.find((device) => device.id === selectedId);
   const selectedInitial = selectedDevice?.latest || EMPTY_LATEST;
-  const selectedStream = useDeviceStream(selectedDevice?.id, selectedInitial);
-  const leakageDevice = devices.find((device) =>
+  const selectedStream = useDeviceStream(
+    selectedDevice?.connected ? selectedDevice.id : undefined,
+    selectedInitial,
+  );
+  const connectedDevices = useMemo(
+    () => devices.filter((device) => device.connected),
+    [devices],
+  );
+  const leakageDevice = connectedDevices.find((device) =>
     device.metrics.some((metric) => metric.name === "leakage_status"),
   );
   const independentLeakDeviceId =
@@ -266,16 +402,28 @@ function App() {
   }, [leakageDevice?.title, leakagePoint, leakageStatus]);
 
   useEffect(() => {
-    const notification = notificationRef.current;
-    if (!notification) return;
-    if (hasLeak) {
-      notification.message = "Leak detected by Milesight EM300-ZLD";
-      notification.type = "warning";
-      void notification.show();
-    } else {
-      void notification.dismiss();
-    }
-  }, [hasLeak]);
+    const eventElement = eventRef.current;
+    if (!eventElement) return;
+    let cancelled = false;
+    void customElements.whenDefined("ui-event").then(() => {
+      const shadow = eventElement.shadowRoot;
+      if (
+        cancelled ||
+        !shadow ||
+        shadow.querySelector("style[data-hide-controls]")
+      ) {
+        return;
+      }
+      const style = document.createElement("style");
+      style.dataset.hideControls = "true";
+      // ui-event exposes no prop to hide its subscribe/unsubscribe controls.
+      style.textContent = ".gap-2.mb-3 { display: none; }";
+      shadow.append(style);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [view]);
 
   const chartMetrics = isSentron
     ? PHASE_GROUPS[phaseGroup]
@@ -300,41 +448,153 @@ function App() {
     .map((point) => point.timestamp)
     .sort()
     .at(-1);
+  const averages = useMemo(
+    () => buildAverages(connectedDevices),
+    [connectedDevices],
+  );
+  const signalCount = connectedDevices.reduce(
+    (total, device) => total + device.metrics.length,
+    0,
+  );
+  const readingCount = connectedDevices.reduce(
+    (total, device) => total + Object.keys(device.latest).length,
+    0,
+  );
+  const detachedCount = devices.length - connectedDevices.length;
+  const alerts = useMemo(() => {
+    const active: {
+      id: string;
+      title: string;
+      device: string;
+      timestamp?: string;
+    }[] = [];
+    connectedDevices.forEach((device) => {
+      // The leakage device is streamed live, so prefer its socket value.
+      const point =
+        device.id === leakageDevice?.id
+          ? leakagePoint
+          : device.latest.leakage_status;
+      if (String(point?.value).toLowerCase() === "leak") {
+        active.push({
+          id: `${device.id}:leakage`,
+          title: "Leak detected",
+          device: device.title,
+          timestamp: point?.timestamp,
+        });
+      }
+    });
+    return active;
+  }, [connectedDevices, leakageDevice?.id, leakagePoint]);
+
+  const toggleConnection = async (device: DeviceDefinition) => {
+    setPendingIds((current) => [...current, device.id]);
+    try {
+      const updated = await setDeviceConnection(device.id, !device.connected);
+      setDevices((current) =>
+        current.map((item) => (item.id === updated.id ? updated : item)),
+      );
+      setError(undefined);
+    } catch (toggleError) {
+      setError(
+        toggleError instanceof Error
+          ? toggleError.message
+          : "Unable to change device connection",
+      );
+    } finally {
+      setPendingIds((current) => current.filter((id) => id !== device.id));
+    }
+  };
+
+  const renderToggle = (device: DeviceDefinition, className: string) => {
+    const pending = pendingIds.includes(device.id);
+    const label = `${device.connected ? "Detach" : "Connect"} ${device.title}`;
+    return (
+      <button
+        aria-label={label}
+        className={device.connected ? className : `${className} detached`}
+        disabled={pending}
+        onClick={() => void toggleConnection(device)}
+        title={label}
+        type="button"
+      >
+        {pending ? (
+          <RefreshCw className="spin" size={14} />
+        ) : device.connected ? (
+          <Plug size={14} />
+        ) : (
+          <Unplug size={14} />
+        )}
+      </button>
+    );
+  };
 
   return (
     <div className="app-shell">
       <aside className="sidebar">
         <div className="brand">
-          <span className="brand-mark">
-            <Activity size={19} />
+          <img src={thingwebLogo} alt="Thingweb Logo" height={50} />
+          <span className="brand-copy">
+            <span className="brand-name">
+              Thing<em>web</em>
+            </span>
+            <small>Device Dashboard</small>
           </span>
-          <span>WoT Operations</span>
         </div>
+
+        <nav className="device-nav" aria-label="Overview">
+          <p className="nav-label">Overview</p>
+          <button
+            className={
+              view === "dashboard" ? "device-link active" : "device-link"
+            }
+            onClick={() => setView("dashboard")}
+            type="button"
+          >
+            <LayoutDashboard size={18} />
+            <span>
+              <strong>Dashboard</strong>
+              <small>Fleet summary</small>
+            </span>
+            <span className="online-dot" aria-label="Available" />
+          </button>
+        </nav>
 
         <nav className="device-nav" aria-label="Devices">
           <p className="nav-label">
-            Devices <span>{devices.length}</span>
+            Devices{" "}
+            <span>
+              {connectedDevices.length}/{devices.length}
+            </span>
           </p>
           {devices.map((device) => {
             const Icon = deviceIcon(device);
+            const classes = ["device-link"];
+            if (device.id === selectedId && view === "device") {
+              classes.push("active");
+            }
+            if (!device.connected) classes.push("detached");
             return (
-              <button
-                className={
-                  device.id === selectedId
-                    ? "device-link active"
-                    : "device-link"
-                }
-                key={device.id}
-                onClick={() => setSelectedId(device.id)}
-                type="button"
-              >
-                <Icon size={18} />
-                <span>
-                  <strong>{device.title}</strong>
-                  <small>{device.metrics.length} signals</small>
-                </span>
-                <span className="online-dot" aria-label="Available" />
-              </button>
+              <div className="device-row" key={device.id}>
+                <button
+                  className={classes.join(" ")}
+                  onClick={() => {
+                    setSelectedId(device.id);
+                    setView("device");
+                  }}
+                  type="button"
+                >
+                  <Icon size={18} />
+                  <span>
+                    <strong>{device.title}</strong>
+                    <small>
+                      {device.connected
+                        ? `${device.metrics.length} signals`
+                        : "Detached"}
+                    </small>
+                  </span>
+                </button>
+                {renderToggle(device, "connection-toggle")}
+              </div>
             );
           })}
         </nav>
@@ -354,18 +614,6 @@ function App() {
       </aside>
 
       <main className="dashboard">
-        <header className="topbar">
-          <div>
-            <p className="eyebrow">Facility telemetry</p>
-            <h1>Device dashboard</h1>
-          </div>
-          <div className={`connection-pill ${selectedStream.status}`}>
-            <StatusDot status={selectedStream.status} />
-            <span>{streamLabel(selectedStream.status)}</span>
-            <small>{health?.pollIntervalSeconds || 2}s cadence</small>
-          </div>
-        </header>
-
         {error && (
           <div className="error-banner" role="alert">
             <AlertTriangle size={18} />
@@ -380,195 +628,431 @@ function App() {
           </div>
         )}
 
-        <section className="overview-grid">
-          <div className="device-heading">
-            <div className="device-kicker">
-              <span>Selected device</span>
-              <strong>{selectedDevice?.metrics.length || 0} metrics</strong>
-            </div>
-            <h2>{selectedDevice?.title || "Loading devices"}</h2>
-            <p>
-              {selectedDevice?.description ||
-                "Connecting to telemetry service…"}
-            </p>
-            <div className="device-meta">
-              <span>
-                <Radio size={15} /> {streamLabel(selectedStream.status)}
-              </span>
-              <span>
-                <RefreshCw size={15} /> Updated {relativeTime(latestTimestamp)}
-              </span>
-            </div>
-          </div>
+        {view === "dashboard" && (
+          <>
+            <section className="overview-grid single">
+              <div className="device-heading">
+                <div className="device-kicker">
+                  <span>Fleet overview</span>
+                  <strong>
+                    {connectedDevices.length} of {devices.length} connected
+                  </strong>
+                </div>
+                <h2>Dashboard</h2>
+                <p>
+                  Live snapshot of every connected thing with averaged readings
+                  for common measurements.
+                </p>
+                <div className="device-meta">
+                  <span>
+                    <Radio size={15} /> {connectedDevices.length} streaming
+                  </span>
+                  <span>
+                    <RefreshCw size={15} /> Refreshed every 10s
+                  </span>
+                </div>
+              </div>
+            </section>
 
-          <div className={hasLeak ? "leak-panel alerting" : "leak-panel"}>
-            <div className="leak-icon">
-              <Droplets size={24} />
-            </div>
-            <div className="leak-copy">
-              <span>Milesight leakage</span>
-              <strong>{hasLeak ? "Leak detected" : "No leakage"}</strong>
-              <small>{relativeTime(leakagePoint?.timestamp)}</small>
-            </div>
-            <div
-              className="leak-state"
-              aria-label={hasLeak ? "Warning" : "Normal"}
-            >
-              {hasLeak ? (
-                <AlertTriangle size={18} />
+            <section className="metrics-section">
+              <div className="section-heading">
+                <div>
+                  <p className="eyebrow">Monitoring</p>
+                  <h2>Alerts</h2>
+                </div>
+                <span>
+                  {alerts.length
+                    ? `${alerts.length} active`
+                    : "Nothing to report"}
+                </span>
+              </div>
+              {alerts.length ? (
+                <div className="alert-grid">
+                  {alerts.map((alert) => (
+                    <article className="alert-card" key={alert.id} role="alert">
+                      <span className="alert-icon">
+                        <AlertTriangle size={20} />
+                      </span>
+                      <div className="alert-copy">
+                        <strong>{alert.title}</strong>
+                        <span>{alert.device}</span>
+                        <small>{relativeTime(alert.timestamp)}</small>
+                      </div>
+                    </article>
+                  ))}
+                </div>
               ) : (
-                <span className="checkmark">✓</span>
-              )}
-            </div>
-          </div>
-        </section>
-
-        <section className="metrics-section">
-          <div className="section-heading">
-            <div>
-              <p className="eyebrow">Current readings</p>
-              <h2>Live metrics</h2>
-            </div>
-            <span>
-              {latestTimestamp
-                ? new Date(latestTimestamp).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    second: "2-digit",
-                  })
-                : "Waiting"}
-            </span>
-          </div>
-          <div className="metric-grid">
-            {selectedDevice?.metrics.map((metric) => {
-              const Icon = metricIcon(metric);
-              const point = selectedStream.latest[metric.name];
-              const warning = metric.name === "leakage_status" && hasLeak;
-              return (
-                <article
-                  className={warning ? "metric-card warning" : "metric-card"}
-                  key={metric.name}
-                >
-                  <div className="metric-top">
-                    <span>{metric.title}</span>
-                    <Icon size={17} />
+                <div className="alert-healthy">
+                  <span className="checkmark">✓</span>
+                  <div>
+                    <strong>All systems healthy</strong>
+                    <small>
+                      No leakage detected across {connectedDevices.length}{" "}
+                      device
+                      {connectedDevices.length === 1 ? "" : "s"}
+                    </small>
                   </div>
-                  <strong>{formatValue(point?.value, metric.unit)}</strong>
-                  <small>
-                    {relativeTime(point?.timestamp)} · {metric.kind}
-                  </small>
-                </article>
-              );
-            })}
-          </div>
-        </section>
+                </div>
+              )}
+            </section>
 
-        <section className="analytics-grid">
-          <div className="chart-panel">
-            <div className="section-heading chart-heading">
-              <div>
-                <p className="eyebrow">Historical telemetry</p>
-                <h2>{isSentron ? "Three-phase trend" : "Signal trend"}</h2>
-              </div>
-              <div className="range-control" aria-label="History range">
-                {([1, 7, 30] as RangeDays[]).map((days) => (
-                  <button
-                    key={days}
-                    className={rangeDays === days ? "active" : ""}
-                    type="button"
-                    onClick={() => setRangeDays(days)}
-                  >
-                    {days === 1 ? "24H" : `${days}D`}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <section className="summary-grid">
+              <article className="summary-card">
+                <span>Devices</span>
+                <strong>{connectedDevices.length}</strong>
+                <small>
+                  {detachedCount
+                    ? `${detachedCount} detached`
+                    : "All things connected"}
+                </small>
+              </article>
+              <article className="summary-card">
+                <span>Signals</span>
+                <strong>{signalCount}</strong>
+                <small>Properties and events</small>
+              </article>
+              <article className="summary-card">
+                <span>Live readings</span>
+                <strong>{readingCount}</strong>
+                <small>Values received</small>
+              </article>
+              <article className="summary-card">
+                <span>Data source</span>
+                <strong>{health?.dataSource || "—"}</strong>
+                <small>InfluxDB {health?.influx || "—"}</small>
+              </article>
+            </section>
 
-            {isSentron && (
-              <div
-                className="phase-tabs"
-                role="tablist"
-                aria-label="Electrical measurement"
-              >
-                {(["voltage", "current", "power"] as PhaseGroup[]).map(
-                  (group) => (
-                    <button
-                      role="tab"
-                      aria-selected={phaseGroup === group}
-                      className={phaseGroup === group ? "active" : ""}
-                      key={group}
-                      type="button"
-                      onClick={() => setPhaseGroup(group)}
-                    >
-                      {group}
-                    </button>
-                  ),
+            <section className="metrics-section">
+              <div className="section-heading">
+                <div>
+                  <p className="eyebrow">Fleet aggregates</p>
+                  <h2>Average values</h2>
+                </div>
+                <span>{averages.length} measurements</span>
+              </div>
+              <div className="metric-grid">
+                {averages.length ? (
+                  averages.map((average) => {
+                    const Icon = average.icon;
+                    return (
+                      <article className="metric-card" key={average.key}>
+                        <div className="metric-top">
+                          <span>{average.label}</span>
+                          <Icon size={17} />
+                        </div>
+                        <strong>
+                          {formatValue(average.average, average.unit)}
+                        </strong>
+                        <small>
+                          {average.deviceCount} device
+                          {average.deviceCount === 1 ? "" : "s"} ·{" "}
+                          {average.signalCount} signal
+                          {average.signalCount === 1 ? "" : "s"}
+                        </small>
+                      </article>
+                    );
+                  })
+                ) : (
+                  <p className="chart-empty">No numeric readings yet</p>
                 )}
               </div>
-            )}
+            </section>
 
-            <div className="chart-wrap">
-              {historyLoading ? (
-                <div className="chart-empty">
-                  <RefreshCw className="spin" size={22} /> Loading history
+            <section className="metrics-section">
+              <div className="section-heading">
+                <div>
+                  <p className="eyebrow">Connected things</p>
+                  <h2>All devices</h2>
                 </div>
-              ) : chartData.length ? (
-                <Suspense
-                  fallback={
-                    <div className="chart-empty">
-                      <RefreshCw className="spin" size={22} /> Loading chart
-                    </div>
-                  }
+                <span>
+                  {connectedDevices.length} connected · {detachedCount} detached
+                </span>
+              </div>
+              <div className="device-card-grid">
+                {devices.map((device) => {
+                  const Icon = deviceIcon(device);
+                  const readings = device.metrics
+                    .filter(
+                      (metric) =>
+                        device.latest[metric.name]?.value !== undefined,
+                    )
+                    .slice(0, 4);
+                  return (
+                    <article
+                      className={
+                        device.connected
+                          ? "device-card"
+                          : "device-card detached"
+                      }
+                      key={device.id}
+                    >
+                      <div className="device-card-top">
+                        <span className="device-card-icon">
+                          <Icon size={18} />
+                        </span>
+                        <button
+                          className="device-card-title"
+                          onClick={() => {
+                            setSelectedId(device.id);
+                            setView("device");
+                          }}
+                          type="button"
+                        >
+                          <strong>{device.title}</strong>
+                          <small>
+                            {device.connected
+                              ? `${device.metrics.length} signals · ${relativeTime(lastSeen(device))}`
+                              : "Detached from dashboard"}
+                          </small>
+                        </button>
+                        {renderToggle(device, "connection-toggle light")}
+                      </div>
+                      <ul className="device-card-readings">
+                        {readings.map((metric) => (
+                          <li key={metric.name}>
+                            <span>{metric.title}</span>
+                            <strong>
+                              {formatValue(
+                                device.latest[metric.name]?.value,
+                                metric.unit,
+                              )}
+                            </strong>
+                          </li>
+                        ))}
+                      </ul>
+                    </article>
+                  );
+                })}
+              </div>
+            </section>
+          </>
+        )}
+
+        {view === "device" && (
+          <>
+            <section className="overview-grid">
+              <div className="device-heading">
+                <div className="device-kicker">
+                  <span>Selected device</span>
+                  <strong>{selectedDevice?.metrics.length || 0} metrics</strong>
+                </div>
+                <h2>{selectedDevice?.title || "Loading devices"}</h2>
+                <p>
+                  {selectedDevice?.description ||
+                    "Connecting to telemetry service…"}
+                </p>
+                <div className="device-meta">
+                  <span>
+                    <Radio size={15} />{" "}
+                    {selectedDevice && !selectedDevice.connected
+                      ? "Detached"
+                      : streamLabel(selectedStream.status)}
+                  </span>
+                  <span>
+                    <RefreshCw size={15} /> Updated{" "}
+                    {relativeTime(latestTimestamp)}
+                  </span>
+                  {selectedDevice && (
+                    <button
+                      className={
+                        selectedDevice.connected
+                          ? "connection-button"
+                          : "connection-button detached"
+                      }
+                      disabled={pendingIds.includes(selectedDevice.id)}
+                      onClick={() => void toggleConnection(selectedDevice)}
+                      type="button"
+                    >
+                      {selectedDevice.connected ? (
+                        <Unplug size={14} />
+                      ) : (
+                        <Plug size={14} />
+                      )}
+                      {selectedDevice.connected
+                        ? "Detach device"
+                        : "Connect device"}
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className={hasLeak ? "leak-panel alerting" : "leak-panel"}>
+                <div className="leak-icon">
+                  <Droplets size={24} />
+                </div>
+                <div className="leak-copy">
+                  <span>Milesight leakage</span>
+                  <strong>{hasLeak ? "Leak detected" : "No leakage"}</strong>
+                  <small>{relativeTime(leakagePoint?.timestamp)}</small>
+                </div>
+                <div
+                  className="leak-state"
+                  aria-label={hasLeak ? "Warning" : "Normal"}
                 >
-                  <TrendChart
-                    colors={CHART_COLORS}
-                    data={chartData}
-                    metrics={chartMetrics.map((metric) => ({
-                      key: metric,
-                      label: metricByName.get(metric)?.title || metric,
-                    }))}
-                  />
-                </Suspense>
+                  {hasLeak ? (
+                    <AlertTriangle size={18} />
+                  ) : (
+                    <span className="checkmark">✓</span>
+                  )}
+                </div>
+              </div>
+            </section>
+
+            <section className="metrics-section">
+              <div className="section-heading">
+                <div>
+                  <p className="eyebrow">Current readings</p>
+                  <h2>Live metrics</h2>
+                </div>
+                <span>
+                  {latestTimestamp
+                    ? new Date(latestTimestamp).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit",
+                      })
+                    : "Waiting"}
+                </span>
+              </div>
+              {selectedDevice && !selectedDevice.connected ? (
+                <div className="detached-notice">
+                  <Unplug size={20} />
+                  <div>
+                    <strong>Device detached</strong>
+                    <small>
+                      Telemetry polling is paused. Connect the device to resume
+                      live readings.
+                    </small>
+                  </div>
+                </div>
               ) : (
-                <div className="chart-empty">
-                  No numeric history in this range
+                <div className="metric-grid">
+                  {selectedDevice?.metrics.map((metric) => {
+                    const Icon = metricIcon(metric);
+                    const point = selectedStream.latest[metric.name];
+                    const warning = metric.name === "leakage_status" && hasLeak;
+                    return (
+                      <article
+                        className={
+                          warning ? "metric-card warning" : "metric-card"
+                        }
+                        key={metric.name}
+                      >
+                        <div className="metric-top">
+                          <span>{metric.title}</span>
+                          <Icon size={17} />
+                        </div>
+                        <strong>
+                          {formatValue(point?.value, metric.unit)}
+                        </strong>
+                        <small>
+                          {relativeTime(point?.timestamp)} · {metric.kind}
+                        </small>
+                      </article>
+                    );
+                  })}
                 </div>
               )}
-            </div>
-          </div>
+            </section>
 
-          <aside className="events-panel">
-            <div className="section-heading">
-              <div>
-                <p className="eyebrow">Thingweb UI-WoT</p>
-                <h2>Leakage events</h2>
+            <section className="analytics-grid">
+              <div className="chart-panel">
+                <div className="section-heading chart-heading">
+                  <div>
+                    <p className="eyebrow">Historical telemetry</p>
+                    <h2>{isSentron ? "Three-phase trend" : "Signal trend"}</h2>
+                  </div>
+                  <div className="range-control" aria-label="History range">
+                    {([1, 7, 30] as RangeDays[]).map((days) => (
+                      <button
+                        key={days}
+                        className={rangeDays === days ? "active" : ""}
+                        type="button"
+                        onClick={() => setRangeDays(days)}
+                      >
+                        {days === 1 ? "24H" : `${days}D`}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {isSentron && (
+                  <div
+                    className="phase-tabs"
+                    role="tablist"
+                    aria-label="Electrical measurement"
+                  >
+                    {(["voltage", "current", "power"] as PhaseGroup[]).map(
+                      (group) => (
+                        <button
+                          role="tab"
+                          aria-selected={phaseGroup === group}
+                          className={phaseGroup === group ? "active" : ""}
+                          key={group}
+                          type="button"
+                          onClick={() => setPhaseGroup(group)}
+                        >
+                          {group}
+                        </button>
+                      ),
+                    )}
+                  </div>
+                )}
+
+                <div className="chart-wrap">
+                  {historyLoading ? (
+                    <div className="chart-empty">
+                      <RefreshCw className="spin" size={22} /> Loading history
+                    </div>
+                  ) : chartData.length ? (
+                    <Suspense
+                      fallback={
+                        <div className="chart-empty">
+                          <RefreshCw className="spin" size={22} /> Loading chart
+                        </div>
+                      }
+                    >
+                      <TrendChart
+                        colors={CHART_COLORS}
+                        data={chartData}
+                        metrics={chartMetrics.map((metric) => ({
+                          key: metric,
+                          label: metricByName.get(metric)?.title || metric,
+                        }))}
+                      />
+                    </Suspense>
+                  ) : (
+                    <div className="chart-empty">
+                      No numeric history in this range
+                    </div>
+                  )}
+                </div>
               </div>
-              <StatusDot status={leakageStatus} />
-            </div>
-            <ui-event
-              ref={eventRef}
-              event-name="leakage_status"
-              label="Milesight EM300-ZLD"
-              max-events={5}
-              show-last-updated
-              show-status
-              show-timestamp
-              variant="outlined"
-            />
-          </aside>
-        </section>
-      </main>
 
-      <div className="notification-host">
-        <ui-notification
-          ref={notificationRef}
-          duration={0}
-          message=""
-          show-close-button
-          show-icon
-          type="warning"
-        />
-      </div>
+              <aside className="events-panel">
+                <div className="section-heading">
+                  <div>
+                    <p className="eyebrow">Thingweb UI-WoT</p>
+                    <h2>Leakage events</h2>
+                  </div>
+                  <StatusDot status={leakageStatus} />
+                </div>
+                <ui-event
+                  ref={eventRef}
+                  event-name="leakage_status"
+                  label="Milesight EM300-ZLD"
+                  max-events={5}
+                  show-last-updated
+                  show-status
+                  show-timestamp
+                  variant="outlined"
+                />
+              </aside>
+            </section>
+          </>
+        )}
+      </main>
     </div>
   );
 }

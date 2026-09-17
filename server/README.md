@@ -1,4 +1,4 @@
-# WoT Operations API
+# WoT Devices Dashboard API
 
 FastAPI service that discovers active `zenoh-*.td.json` Thing Descriptions, keeps bounded telemetry history in memory, optionally persists it to InfluxDB 3, and streams device-scoped updates over WebSockets.
 

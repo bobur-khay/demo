@@ -4,4 +4,4 @@ pytest>=8.0,<9.0
 httpx>=0.27,<1.0
 python-dotenv>=1.0,<2.0
 influxdb3-python
-wotpy @ git+https://github.com/eclipse-thingweb/wotpy.git@f72b8490d56972e2fcc124f19b1d96c5d85eb074
+wotpy @ git+https://github.com/ki-do/wotpy.git@ttc

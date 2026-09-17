@@ -10,22 +10,10 @@ interface UiEventAttributes extends HTMLAttributes<HTMLUiEventElement> {
   variant?: "outlined" | "filled";
 }
 
-interface UiNotificationAttributes extends HTMLAttributes<HTMLUiNotificationElement> {
-  duration?: number;
-  message?: string;
-  "show-close-button"?: boolean;
-  "show-icon"?: boolean;
-  type?: "info" | "success" | "warning" | "error";
-}
-
 declare module "react" {
   namespace JSX {
     interface IntrinsicElements {
       "ui-event": DetailedHTMLProps<UiEventAttributes, HTMLUiEventElement>;
-      "ui-notification": DetailedHTMLProps<
-        UiNotificationAttributes,
-        HTMLUiNotificationElement
-      >;
     }
   }
 }

@@ -1,4 +1,4 @@
-# WoT Operations Dashboard
+# WoT Devices Dashboard
 
 React dashboard for live device metrics, bounded historical charts, three-phase Sentron analysis, and Milesight leakage alerts.
 

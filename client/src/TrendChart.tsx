@@ -23,7 +23,7 @@ export default function TrendChart({ colors, data, metrics }: TrendChartProps) {
         margin={{ top: 14, right: 8, left: -16, bottom: 0 }}
       >
         <CartesianGrid
-          stroke="#e4e8e5"
+          stroke="#2e2f2f"
           strokeDasharray="3 5"
           vertical={false}
         />
@@ -36,26 +36,43 @@ export default function TrendChart({ colors, data, metrics }: TrendChartProps) {
             })
           }
           minTickGap={34}
-          stroke="#8b938e"
+          stroke="#7e807f"
           tickLine={false}
           axisLine={false}
+          fontFamily="Fira Mono, monospace"
           fontSize={11}
         />
         <YAxis
-          stroke="#8b938e"
+          stroke="#7e807f"
           tickLine={false}
           axisLine={false}
+          fontFamily="Fira Mono, monospace"
           fontSize={11}
         />
         <Tooltip
           labelFormatter={(value) => new Date(Number(value)).toLocaleString()}
+          cursor={{ stroke: "#4c4d4c" }}
           contentStyle={{
-            borderRadius: 6,
-            border: "1px solid #dce1dd",
-            boxShadow: "0 8px 24px rgba(31, 38, 34, .08)",
+            borderRadius: 10,
+            border: "1px solid #4c4d4c",
+            background: "#1e1e1e",
+            color: "#fffffe",
+            fontFamily: "Fira Mono, monospace",
+            fontSize: 12,
+            boxShadow: "0 8px 24px rgba(0, 0, 0, .35)",
+          }}
+          itemStyle={{ color: "#cacccc" }}
+          labelStyle={{ color: "#979999" }}
+        />
+        <Legend
+          iconType="circle"
+          iconSize={7}
+          wrapperStyle={{
+            color: "#cacccc",
+            fontFamily: "Fira Mono, monospace",
+            fontSize: 12,
           }}
         />
-        <Legend iconType="circle" iconSize={7} />
         {metrics.map((metric, index) => (
           <Line
             key={metric.key}

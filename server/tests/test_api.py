@@ -3,7 +3,9 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
+import pytest
 from fastapi.testclient import TestClient
+from starlette.websockets import WebSocketDisconnect
 
 from app.main import Settings, _create_data_source, _load_environment, app
 from app.services import MockDataSource, WotDataSource, load_devices
@@ -77,6 +79,44 @@ def test_device_websocket_delivers_snapshot_and_telemetry(monkeypatch) -> None:
             assert telemetry["type"] == "telemetry"
             assert telemetry["data"]["deviceId"] == device_id
             assert telemetry["data"]["source"] == "mock"
+
+
+def test_device_can_be_detached_and_reconnected(monkeypatch) -> None:
+    configure_mock(monkeypatch)
+    with TestClient(app) as client:
+        device_id = client.get("/api/devices").json()[0]["id"]
+
+        detached = client.post(
+            f"/api/devices/{device_id}/connection", json={"connected": False}
+        )
+        assert detached.status_code == 200
+        assert detached.json()["connected"] is False
+        assert detached.json()["latest"] == {}
+
+        assert client.get("/api/health").json()["connectedCount"] == 3
+        states = {
+            device["id"]: device["connected"]
+            for device in client.get("/api/devices").json()
+        }
+        assert states.pop(device_id) is False
+        assert all(states.values())
+
+        with pytest.raises(WebSocketDisconnect):
+            with client.websocket_connect(f"/api/ws/devices/{device_id}"):
+                pass
+
+        reconnected = client.post(
+            f"/api/devices/{device_id}/connection", json={"connected": True}
+        )
+        assert reconnected.json()["connected"] is True
+        assert client.get("/api/health").json()["connectedCount"] == 4
+
+        assert (
+            client.post(
+                "/api/devices/urn:missing/connection", json={"connected": True}
+            ).status_code
+            == 404
+        )
 
 
 def test_mock_leakage_toggles_after_five_seconds() -> None:
