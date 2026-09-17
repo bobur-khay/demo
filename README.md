@@ -19,7 +19,8 @@ npm ci
 npm run dev
 ```
 
-Open `http://localhost:5173`. Mock communication is the default; configure values from `server/.env.example` in the process environment to enable WoTPy or InfluxDB.
+Open `http://localhost:5173`. WoTPy device communication is the default. Set `DATA_SOURCE=mock` when the Thing Description endpoints are not reachable; configure optional InfluxDB values from `.env.example` in the process environment.
+The backend automatically reads the root `.env` file. Values exported by the launching process take precedence over that file.
 
 ## Run with containers
 

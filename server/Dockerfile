@@ -12,7 +12,7 @@ FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     TDS_DIRECTORY=/app/tds \
-    DATA_SOURCE=mock
+    DATA_SOURCE=wot
 
 RUN useradd --create-home --uid 10001 appuser
 COPY --from=builder /install /usr/local

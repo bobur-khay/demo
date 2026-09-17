@@ -11,6 +11,7 @@ from typing import AsyncGenerator
 
 from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
 
 from .services import (
     DataSource,
@@ -22,6 +23,15 @@ from .services import (
     load_devices,
 )
 from .types import DeviceDefinition
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+
+def _load_environment(env_file: Path | None = None) -> None:
+    load_dotenv(env_file or PROJECT_ROOT / ".env", override=False)
+
+
+_load_environment()
 
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
 logger = logging.getLogger(__name__)
@@ -57,10 +67,10 @@ class Settings:
                 "INFLUX_DATABASE are not all configured"
             )
 
-        source = os.getenv("DATA_SOURCE", "mock").lower()
+        source = os.getenv("DATA_SOURCE", "wot").lower()
         if source not in {"mock", "wot"}:
             raise ValueError("DATA_SOURCE must be 'mock' or 'wot'")
-        default_tds = Path(__file__).resolve().parents[2] / "tds"
+        default_tds = PROJECT_ROOT / "tds"
         return cls(
             data_source=source,
             poll_interval_seconds=float(os.getenv("POLL_INTERVAL_SECONDS", "2")),
@@ -86,6 +96,12 @@ class Runtime:
     source: DataSource
     influx: InfluxRepository | None
     influx_status: str = "disabled"
+
+
+def _create_data_source(settings: Settings) -> DataSource:
+    if settings.data_source == "mock":
+        return MockDataSource()
+    return WotDataSource()
 
 
 def _device_payload(device: DeviceDefinition) -> dict[str, object]:
@@ -125,9 +141,10 @@ async def _poll_forever(runtime: Runtime) -> None:
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     settings = Settings.from_environment()
+    logger.info("Starting with %s data source", settings.data_source)
     devices = load_devices(settings.tds_directory)
     store = TelemetryStore(settings.max_points_per_series)
-    source: DataSource = MockDataSource() if settings.data_source == "mock" else WotDataSource()
+    source = _create_data_source(settings)
     influx = InfluxRepository(settings.influx) if settings.influx else None
     runtime = Runtime(settings, devices, store, source, influx)
     app.state.runtime = runtime

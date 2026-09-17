@@ -275,11 +275,14 @@ class WotDataSource:
         self._event_queue = deque(
             point for point in self._event_queue if point.device_id != device.id
         )
-        for metric in device.metrics:
-            if metric.kind != "property":
-                continue
-            value = await thing.read_property(metric.name)
-            points.append(TelemetryPoint(device.id, metric.name, value, now, "wot"))
+        properties = [metric for metric in device.metrics if metric.kind == "property"]
+        values = await asyncio.gather(
+            *(thing.read_property(metric.name) for metric in properties)
+        )
+        points.extend(
+            TelemetryPoint(device.id, metric.name, value, now, "wot")
+            for metric, value in zip(properties, values)
+        )
         return points
 
 

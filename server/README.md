@@ -11,12 +11,12 @@ python -m pip install -r requirements.txt
 python -m uvicorn app.main:app --reload
 ```
 
-The API runs at `http://127.0.0.1:8000`; OpenAPI is at `/docs`. Configure values from `.env.example` in the shell or process manager. The application does not parse dotenv files itself.
+The API runs at `http://127.0.0.1:8000`; OpenAPI is at `/docs`. Copy `.env.example` to the project root as `.env` for local configuration. The application loads that file automatically, while values exported by the shell or process manager take precedence.
 
 ## Runtime modes
 
+- `DATA_SOURCE=wot` (default) consumes each TD with WoTPy's Zenoh client, reads device properties concurrently every poll interval, and subscribes to events.
 - `DATA_SOURCE=mock` generates deterministic two-second telemetry, 30 days of half-hour history, and alternates Milesight `leakage_status` between `normal` and `leak` every five seconds.
-- `DATA_SOURCE=wot` consumes each TD with WoTPy's Zenoh client, reads properties every poll interval, and subscribes to events.
 - InfluxDB is enabled only when `INFLUX_HOST`, `INFLUX_TOKEN`, and `INFLUX_DATABASE` are all present. Existing history is loaded at startup and new points are persisted continuously.
 
 WoTPy is pinned to upstream commit `f72b8490d56972e2fcc124f19b1d96c5d85eb074` for reproducible installs.

@@ -1,10 +1,13 @@
+import asyncio
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from typing import Any
 
 from fastapi.testclient import TestClient
 
-from app.main import app
-from app.services import MockDataSource, load_devices
+from app.main import Settings, _create_data_source, _load_environment, app
+from app.services import MockDataSource, WotDataSource, load_devices
+from app.types import DeviceDefinition, MetricDefinition
 
 
 def configure_mock(monkeypatch) -> None:
@@ -15,6 +18,21 @@ def configure_mock(monkeypatch) -> None:
     monkeypatch.delenv("INFLUX_TOKEN", raising=False)
     monkeypatch.delenv("INFLUX_DB_TOKEN", raising=False)
     monkeypatch.delenv("INFLUX_DATABASE", raising=False)
+
+
+def test_environment_file_selects_mock_without_overriding_process_env(
+    monkeypatch, tmp_path: Path
+) -> None:
+    env_file = tmp_path / ".env"
+    env_file.write_text("DATA_SOURCE=mock\n", encoding="utf-8")
+
+    monkeypatch.delenv("DATA_SOURCE", raising=False)
+    _load_environment(env_file)
+    assert isinstance(_create_data_source(Settings.from_environment()), MockDataSource)
+
+    monkeypatch.setenv("DATA_SOURCE", "wot")
+    _load_environment(env_file)
+    assert isinstance(_create_data_source(Settings.from_environment()), WotDataSource)
 
 
 def test_device_inventory_and_history(monkeypatch) -> None:
@@ -85,3 +103,47 @@ def test_archived_metadata_overlays_proxy_presentation_only() -> None:
     assert milesight.description.startswith("Milesight EM300-ZLD leak detection sensor")
     assert milesight.td["id"] == "urn:zenoh:proxy:milesight-em300-zld"
     assert milesight.td["events"]["temperature"]["forms"][0]["href"].startswith("zenoh+tcp://")
+
+
+def test_wot_source_reads_device_properties_concurrently() -> None:
+    metric_names = ("voltage-l1-n", "voltage-l2-n")
+    device = DeviceDefinition(
+        id="meter",
+        title="Meter",
+        description="",
+        td={"id": "meter", "properties": {name: {} for name in metric_names}},
+        metrics=tuple(
+            MetricDefinition(name, name, "property", "number") for name in metric_names
+        ),
+    )
+
+    class FakeConsumedThing:
+        def __init__(self) -> None:
+            self.calls: list[str] = []
+            self.all_reads_started = asyncio.Event()
+
+        async def read_property(self, name: str) -> float:
+            self.calls.append(name)
+            if len(self.calls) == len(metric_names):
+                self.all_reads_started.set()
+            await self.all_reads_started.wait()
+            return {"voltage-l1-n": 230.1, "voltage-l2-n": 231.2}[name]
+
+    class FakeWoT:
+        def __init__(self, thing: FakeConsumedThing) -> None:
+            self.thing = thing
+
+        def consume(self, _td: str) -> Any:
+            return self.thing
+
+    source = WotDataSource()
+    thing = FakeConsumedThing()
+    source._wot = FakeWoT(thing)
+
+    points = asyncio.run(asyncio.wait_for(source.read(device), timeout=0.1))
+
+    assert thing.calls == list(metric_names)
+    assert [(point.metric, point.value, point.source) for point in points] == [
+        ("voltage-l1-n", 230.1, "wot"),
+        ("voltage-l2-n", 231.2, "wot"),
+    ]
