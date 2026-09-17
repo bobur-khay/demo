@@ -1,13 +1,22 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type DragEvent,
+} from "react";
 import {
   Activity,
   AlertTriangle,
   BatteryMedium,
   Cloud,
   Droplets,
+  FileJson,
   Gauge,
   LayoutDashboard,
-  Plug,
   Radio,
   RefreshCw,
   Server,
@@ -247,6 +256,21 @@ function StatusDot({ status }: { status: StreamStatus }) {
   return <span className={`status-dot ${status}`} aria-hidden="true" />;
 }
 
+const TD_FILE_PATTERN = /\.(td\.)?json(ld)?$/i;
+
+// Only the dropped file name is inspected; its contents are never read.
+function titleFromFileName(fileName: string) {
+  return fileName.replace(TD_FILE_PATTERN, "").trim();
+}
+
+function titlesMatch(fileTitle: string, deviceTitle: string) {
+  return (
+    fileTitle.localeCompare(deviceTitle.trim(), undefined, {
+      sensitivity: "accent",
+    }) === 0
+  );
+}
+
 function App() {
   const [devices, setDevices] = useState<DeviceDefinition[]>([]);
   const [health, setHealth] = useState<HealthStatus>();
@@ -260,6 +284,9 @@ function App() {
   const [phaseGroup, setPhaseGroup] = useState<PhaseGroup>("voltage");
   const [view, setView] = useState<View>("dashboard");
   const [pendingIds, setPendingIds] = useState<string[]>([]);
+  const [detachTarget, setDetachTarget] = useState<DeviceDefinition>();
+  const [dropZone, setDropZone] = useState<string>();
+  const [onboardError, setOnboardError] = useState<string>();
   const eventRef = useRef<HTMLUiEventElement>(null);
   const lastLeakEvent = useRef<string | undefined>(undefined);
 
@@ -273,7 +300,10 @@ function App() {
         ]);
         setDevices(nextDevices);
         setHealth(nextHealth);
-        setSelectedId((current) => current || nextDevices[0]?.id);
+        setSelectedId(
+          (current) =>
+            current || nextDevices.find((device) => device.connected)?.id,
+        );
         setError(undefined);
       } catch (loadError) {
         if (!controller.signal.aborted) {
@@ -311,12 +341,11 @@ function App() {
     };
   }, [view]);
 
-  const selectedDevice = devices.find((device) => device.id === selectedId);
-  const selectedInitial = selectedDevice?.latest || EMPTY_LATEST;
-  const selectedStream = useDeviceStream(
-    selectedDevice?.connected ? selectedDevice.id : undefined,
-    selectedInitial,
+  const selectedDevice = devices.find(
+    (device) => device.id === selectedId && device.connected,
   );
+  const selectedInitial = selectedDevice?.latest || EMPTY_LATEST;
+  const selectedStream = useDeviceStream(selectedDevice?.id, selectedInitial);
   const connectedDevices = useMemo(
     () => devices.filter((device) => device.connected),
     [devices],
@@ -461,6 +490,24 @@ function App() {
     0,
   );
   const detachedCount = devices.length - connectedDevices.length;
+
+  useEffect(() => {
+    if (view === "device" && devices.length > 0 && !selectedDevice) {
+      setView("dashboard");
+    }
+  }, [devices.length, selectedDevice, view]);
+
+  useEffect(() => {
+    // Without this the browser opens a file dropped outside the onboard zone.
+    const prevent = (event: Event) => event.preventDefault();
+    window.addEventListener("dragover", prevent);
+    window.addEventListener("drop", prevent);
+    return () => {
+      window.removeEventListener("dragover", prevent);
+      window.removeEventListener("drop", prevent);
+    };
+  }, []);
+
   const alerts = useMemo(() => {
     const active: {
       id: string;
@@ -486,41 +533,132 @@ function App() {
     return active;
   }, [connectedDevices, leakageDevice?.id, leakagePoint]);
 
-  const toggleConnection = async (device: DeviceDefinition) => {
-    setPendingIds((current) => [...current, device.id]);
-    try {
-      const updated = await setDeviceConnection(device.id, !device.connected);
-      setDevices((current) =>
-        current.map((item) => (item.id === updated.id ? updated : item)),
-      );
-      setError(undefined);
-    } catch (toggleError) {
-      setError(
-        toggleError instanceof Error
-          ? toggleError.message
-          : "Unable to change device connection",
-      );
-    } finally {
-      setPendingIds((current) => current.filter((id) => id !== device.id));
+  const setConnection = useCallback(
+    async (device: DeviceDefinition, connected: boolean) => {
+      setPendingIds((current) => [...current, device.id]);
+      try {
+        const updated = await setDeviceConnection(device.id, connected);
+        setDevices((current) =>
+          current.map((item) => (item.id === updated.id ? updated : item)),
+        );
+        setError(undefined);
+        return true;
+      } catch (connectionError) {
+        setError(
+          connectionError instanceof Error
+            ? connectionError.message
+            : "Unable to change device connection",
+        );
+        return false;
+      } finally {
+        setPendingIds((current) => current.filter((id) => id !== device.id));
+      }
+    },
+    [],
+  );
+
+  const confirmDetach = async () => {
+    if (!detachTarget) return;
+    const device = detachTarget;
+    setDetachTarget(undefined);
+    const removed = await setConnection(device, false);
+    // A detached device is gone from the UI, so its detail view must close.
+    if (removed && selectedId === device.id) {
+      setView("dashboard");
+      setSelectedId(undefined);
     }
   };
 
-  const renderToggle = (device: DeviceDefinition, className: string) => {
+  const onboardFromFiles = useCallback(
+    (files: FileList | null) => {
+      const dropped = [...(files || [])];
+      if (dropped.length === 0) return;
+
+      const matches: DeviceDefinition[] = [];
+      const rejected: string[] = [];
+      dropped.forEach((file) => {
+        if (!TD_FILE_PATTERN.test(file.name)) {
+          rejected.push(`"${file.name}" is not a JSON Thing Description file.`);
+          return;
+        }
+        const fileTitle = titleFromFileName(file.name);
+        const known = devices.filter((device) =>
+          titlesMatch(fileTitle, device.title),
+        );
+        if (known.length === 0) {
+          rejected.push(
+            `Could not onboard the device from file "${file.name}"`,
+          );
+          return;
+        }
+        const match = known.find(
+          (device) =>
+            !device.connected &&
+            // A device already matched by an earlier file must not be reused.
+            !matches.some((picked) => picked.id === device.id),
+        );
+        if (!match) {
+          rejected.push(`"${known[0].title}" is already onboarded.`);
+          return;
+        }
+        matches.push(match);
+      });
+
+      setOnboardError(rejected.length > 0 ? rejected.join(" ") : undefined);
+      matches.forEach((match) => {
+        void setConnection(match, true);
+      });
+    },
+    [devices, setConnection],
+  );
+
+  const renderOnboardZone = (zone: string, heading: string) => (
+    <div
+      className={dropZone === zone ? "onboard-zone active" : "onboard-zone"}
+      onDragEnter={(event: DragEvent<HTMLElement>) => {
+        event.preventDefault();
+        setDropZone(zone);
+      }}
+      onDragOver={(event: DragEvent<HTMLElement>) => {
+        event.preventDefault();
+        setDropZone(zone);
+      }}
+      onDragLeave={(event: DragEvent<HTMLElement>) => {
+        if (event.currentTarget.contains(event.relatedTarget as Node)) return;
+        setDropZone((current) => (current === zone ? undefined : current));
+      }}
+      onDrop={(event: DragEvent<HTMLElement>) => {
+        event.preventDefault();
+        setDropZone(undefined);
+        onboardFromFiles(event.dataTransfer.files);
+      }}
+    >
+      <span className="onboard-zone-icon">
+        <FileJson size={16} />
+      </span>
+      <strong>{heading}</strong>
+      {onboardError ? (
+        <p className="onboard-zone-error" role="alert">
+          {onboardError}
+        </p>
+      ) : null}
+    </div>
+  );
+
+  const renderDetachButton = (device: DeviceDefinition, className: string) => {
     const pending = pendingIds.includes(device.id);
-    const label = `${device.connected ? "Detach" : "Connect"} ${device.title}`;
+    const label = `Detach ${device.title}`;
     return (
       <button
         aria-label={label}
-        className={device.connected ? className : `${className} detached`}
+        className={className}
         disabled={pending}
-        onClick={() => void toggleConnection(device)}
+        onClick={() => setDetachTarget(device)}
         title={label}
         type="button"
       >
         {pending ? (
           <RefreshCw className="spin" size={14} />
-        ) : device.connected ? (
-          <Plug size={14} />
         ) : (
           <Unplug size={14} />
         )}
@@ -566,13 +704,12 @@ function App() {
               {connectedDevices.length}/{devices.length}
             </span>
           </p>
-          {devices.map((device) => {
+          {connectedDevices.map((device) => {
             const Icon = deviceIcon(device);
             const classes = ["device-link"];
             if (device.id === selectedId && view === "device") {
               classes.push("active");
             }
-            if (!device.connected) classes.push("detached");
             return (
               <div className="device-row" key={device.id}>
                 <button
@@ -586,18 +723,19 @@ function App() {
                   <Icon size={18} />
                   <span>
                     <strong>{device.title}</strong>
-                    <small>
-                      {device.connected
-                        ? `${device.metrics.length} signals`
-                        : "Detached"}
-                    </small>
+                    <small>{device.metrics.length} signals</small>
                   </span>
                 </button>
-                {renderToggle(device, "connection-toggle")}
+                {renderDetachButton(device, "connection-toggle")}
               </div>
             );
           })}
         </nav>
+
+        <section className="onboard-nav" aria-label="Onboard a device">
+          <p className="nav-label">Onboard a device</p>
+          {renderOnboardZone("sidebar", "Drop a Thing Description")}
+        </section>
 
         <div className="system-card">
           <div>
@@ -702,7 +840,7 @@ function App() {
                 <strong>{connectedDevices.length}</strong>
                 <small>
                   {detachedCount
-                    ? `${detachedCount} detached`
+                    ? `${detachedCount} removed`
                     : "All things connected"}
                 </small>
               </article>
@@ -766,11 +904,14 @@ function App() {
                   <h2>All devices</h2>
                 </div>
                 <span>
-                  {connectedDevices.length} connected · {detachedCount} detached
+                  {connectedDevices.length} attached ·{" "}
+                  {detachedCount
+                    ? `${detachedCount} removed`
+                    : "nothing removed"}
                 </span>
               </div>
               <div className="device-card-grid">
-                {devices.map((device) => {
+                {connectedDevices.map((device) => {
                   const Icon = deviceIcon(device);
                   const readings = device.metrics
                     .filter(
@@ -779,14 +920,7 @@ function App() {
                     )
                     .slice(0, 4);
                   return (
-                    <article
-                      className={
-                        device.connected
-                          ? "device-card"
-                          : "device-card detached"
-                      }
-                      key={device.id}
-                    >
+                    <article className="device-card" key={device.id}>
                       <div className="device-card-top">
                         <span className="device-card-icon">
                           <Icon size={18} />
@@ -801,12 +935,11 @@ function App() {
                         >
                           <strong>{device.title}</strong>
                           <small>
-                            {device.connected
-                              ? `${device.metrics.length} signals · ${relativeTime(lastSeen(device))}`
-                              : "Detached from dashboard"}
+                            {device.metrics.length} signals ·{" "}
+                            {relativeTime(lastSeen(device))}
                           </small>
                         </button>
-                        {renderToggle(device, "connection-toggle light")}
+                        {renderDetachButton(device, "connection-toggle light")}
                       </div>
                       <ul className="device-card-readings">
                         {readings.map((metric) => (
@@ -824,6 +957,7 @@ function App() {
                     </article>
                   );
                 })}
+                {renderOnboardZone("dashboard", "Drop a Thing Description")}
               </div>
             </section>
           </>
@@ -844,10 +978,7 @@ function App() {
                 </p>
                 <div className="device-meta">
                   <span>
-                    <Radio size={15} />{" "}
-                    {selectedDevice && !selectedDevice.connected
-                      ? "Detached"
-                      : streamLabel(selectedStream.status)}
+                    <Radio size={15} /> {streamLabel(selectedStream.status)}
                   </span>
                   <span>
                     <RefreshCw size={15} /> Updated{" "}
@@ -855,23 +986,13 @@ function App() {
                   </span>
                   {selectedDevice && (
                     <button
-                      className={
-                        selectedDevice.connected
-                          ? "connection-button"
-                          : "connection-button detached"
-                      }
+                      className="connection-button detached"
                       disabled={pendingIds.includes(selectedDevice.id)}
-                      onClick={() => void toggleConnection(selectedDevice)}
+                      onClick={() => setDetachTarget(selectedDevice)}
                       type="button"
                     >
-                      {selectedDevice.connected ? (
-                        <Unplug size={14} />
-                      ) : (
-                        <Plug size={14} />
-                      )}
-                      {selectedDevice.connected
-                        ? "Detach device"
-                        : "Connect device"}
+                      <Unplug size={14} />
+                      Detach device
                     </button>
                   )}
                 </div>
@@ -915,45 +1036,30 @@ function App() {
                     : "Waiting"}
                 </span>
               </div>
-              {selectedDevice && !selectedDevice.connected ? (
-                <div className="detached-notice">
-                  <Unplug size={20} />
-                  <div>
-                    <strong>Device detached</strong>
-                    <small>
-                      Telemetry polling is paused. Connect the device to resume
-                      live readings.
-                    </small>
-                  </div>
-                </div>
-              ) : (
-                <div className="metric-grid">
-                  {selectedDevice?.metrics.map((metric) => {
-                    const Icon = metricIcon(metric);
-                    const point = selectedStream.latest[metric.name];
-                    const warning = metric.name === "leakage_status" && hasLeak;
-                    return (
-                      <article
-                        className={
-                          warning ? "metric-card warning" : "metric-card"
-                        }
-                        key={metric.name}
-                      >
-                        <div className="metric-top">
-                          <span>{metric.title}</span>
-                          <Icon size={17} />
-                        </div>
-                        <strong>
-                          {formatValue(point?.value, metric.unit)}
-                        </strong>
-                        <small>
-                          {relativeTime(point?.timestamp)} · {metric.kind}
-                        </small>
-                      </article>
-                    );
-                  })}
-                </div>
-              )}
+              <div className="metric-grid">
+                {selectedDevice?.metrics.map((metric) => {
+                  const Icon = metricIcon(metric);
+                  const point = selectedStream.latest[metric.name];
+                  const warning = metric.name === "leakage_status" && hasLeak;
+                  return (
+                    <article
+                      className={
+                        warning ? "metric-card warning" : "metric-card"
+                      }
+                      key={metric.name}
+                    >
+                      <div className="metric-top">
+                        <span>{metric.title}</span>
+                        <Icon size={17} />
+                      </div>
+                      <strong>{formatValue(point?.value, metric.unit)}</strong>
+                      <small>
+                        {relativeTime(point?.timestamp)} · {metric.kind}
+                      </small>
+                    </article>
+                  );
+                })}
+              </div>
             </section>
 
             <section className="analytics-grid">
@@ -1053,6 +1159,45 @@ function App() {
           </>
         )}
       </main>
+
+      {detachTarget && (
+        <div
+          className="modal-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="detach-title"
+        >
+          <div className="modal-card">
+            <span className="modal-icon">
+              <AlertTriangle size={22} />
+            </span>
+            <h3 id="detach-title">Detach {detachTarget.title}?</h3>
+            <p>
+              The device is removed from the platform and its telemetry stops
+              immediately. To bring it back you must drop the file{" "}
+              <code>{detachTarget.title}.td.json</code> onto the onboard zone on
+              the dashboard.
+            </p>
+            <div className="modal-actions">
+              <button
+                className="modal-button"
+                onClick={() => setDetachTarget(undefined)}
+                type="button"
+              >
+                Cancel
+              </button>
+              <button
+                className="modal-button danger"
+                onClick={() => void confirmDetach()}
+                type="button"
+              >
+                <Unplug size={14} />
+                Detach device
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

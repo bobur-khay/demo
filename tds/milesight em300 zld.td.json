@@ -20,10 +20,7 @@
       }
     }
   ],
-  "@type": [
-    "Thing",
-    "brick:Leak_Detector_Equipment"
-  ],
+  "@type": ["Thing", "brick:Leak_Detector_Equipment"],
   "id": "urn:dev:milesight_em300_zld",
   "title": "milesight em300 zld",
   "description": "Milesight EM300-ZLD leak detection sensor with battery, temperature, humidity, and leak status uplink events.",
@@ -140,10 +137,7 @@
       "@type": "brick:Leak_Alarm",
       "data": {
         "type": "string",
-        "enum": [
-          "normal",
-          "leak"
-        ]
+        "enum": ["normal", "leak"]
       },
       "forms": [
         {

@@ -60,10 +60,10 @@ def _load_archived_metadata(directory: Path) -> dict[str, dict[str, Any]]:
 def load_devices(directory: Path) -> dict[str, DeviceDefinition]:
     archived_metadata = _load_archived_metadata(directory)
     devices: dict[str, DeviceDefinition] = {}
-    for path in sorted(directory.glob("zenoh-*.td.json")):
+    for path in sorted(directory.glob("*.td.json")):
         with path.open("r", encoding="utf-8") as td_file:
             td = json.load(td_file)
-        title = str(td.get("title", path.stem))
+        title = str(td.get("title", path.name.removesuffix(".td.json")))
         original_td = archived_metadata.get(title.casefold(), {})
         metrics = [
             _metric_from_schema(name, "event", raw, original_td.get("events", {}).get(name))
@@ -82,7 +82,7 @@ def load_devices(directory: Path) -> dict[str, DeviceDefinition]:
             metrics=tuple(metrics),
         )
     if not devices:
-        raise RuntimeError(f"No zenoh Thing Descriptions found in {directory}")
+        raise RuntimeError(f"No Thing Descriptions found in {directory}")
     return devices
 
 
