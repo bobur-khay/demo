@@ -259,7 +259,7 @@ if __name__ == "__main__":
     parser.add_argument("--source-td", action="append", required=True, help="Path to a valid source Thing Description (repeatable)")
     parser.add_argument("--source-binding", action="append", choices=["auto", "modbus", "mqtt"], default=[], help="Source protocol binding per --source-td, same order (default: infer from TD forms)")
     parser.add_argument("--router", default="tcp/localhost:7447", help="Zenoh router URL")
-    parser.add_argument("--max-properties", type=int, default=15, help="Maximum number of properties to proxy")
+    parser.add_argument("--max-properties", type=int, default=25, help="Maximum number of properties to proxy")
     parser.add_argument("--thing-id", default="urn:modbus:zenoh:proxy", help="ID of the exposed Zenoh Thing (only used with a single --source-td)")
     parser.add_argument("--thing-title", default="ModbusZenohProxy", help="Title of the exposed Zenoh Thing (only used with a single --source-td)")
     parser.add_argument("--catalogue-port", type=int, default=9292, help="TD catalogue port (0 to disable)")
