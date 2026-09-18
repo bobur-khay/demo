@@ -1,0 +1,115 @@
+# ------------------------------
+# OS-generated files
+# ------------------------------
+.DS_Store
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.Spotlight-V100/
+.Trashes/
+
+# ------------------------------
+# Editor and IDE files
+# ------------------------------
+.vscode/
+.idea/
+*.iml
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.swp
+*.swo
+
+# ------------------------------
+# Logs and temp files
+# ------------------------------
+*.log
+*.tmp
+*.temp
+*.pid
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ------------------------------
+# Environment and local settings
+# ------------------------------
+.env
+.env.*
+!.env.example
+
+# ------------------------------
+# Archives and binary artifacts
+# ------------------------------
+*.7z
+*.gz
+*.zip
+*.tar
+*.tgz
+*.bz2
+*.rar
+
+# ------------------------------
+# Python
+# ------------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.python-version
+.pytest_cache/
+.mypy_cache/
+.coverage
+coverage.xml
+htmlcov/
+.venv/
+venv/
+env/
+
+# ------------------------------
+# Node.js / JavaScript / TypeScript
+# ------------------------------
+node_modules/
+.npm/
+.pnpm-store/
+.yarn/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# ------------------------------
+# Flutter / Dart
+# ------------------------------
+.dart_tool/
+.packages
+.pub/
+.pub-cache/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.flutter-versions
+.metadata
+
+# Flutter platform build outputs
+android/.gradle/
+android/app/build/
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework/
+ios/Flutter/App.framework/
+macos/Pods/
+linux/flutter/ephemeral/
+windows/flutter/ephemeral/
+
+# ------------------------------
+# Misc build directories
+# ------------------------------
+out/
+target/
+
+# ------------------------------
+# Keep example vectors and definitions tracked
+# ------------------------------
+!TTC26/examples/*.json

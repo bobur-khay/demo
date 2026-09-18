@@ -142,10 +142,26 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  padding-right: 10px;
+  border-radius: var(--radius-sm);
+  transition: all 150ms ease-in-out;
+}
+.device-row:hover {
+  background: var(--neutral-clr-75);
+}
+.device-row:has(.device-link.active) {
+  background: var(--surface-raised-clr);
+  box-shadow: inset 3px 0 var(--clr-primary);
 }
 .device-row .device-link {
   flex: 1;
   min-width: 0;
+}
+/* The row carries the highlight so the detach button sits inside it. */
+.device-row .device-link:hover,
+.device-row .device-link.active {
+  background: transparent;
+  box-shadow: none;
 }
 .connection-toggle {
   width: 28px;
@@ -169,6 +185,10 @@
 .connection-toggle:disabled {
   cursor: progress;
   opacity: 0.6;
+}
+.device-row .connection-toggle {
+  border-color: transparent;
+  background: transparent;
 }
 .connection-toggle.light {
   border-color: var(--border-clr);
@@ -340,12 +360,17 @@ h2 {
 .device-meta svg {
   color: var(--clr-primary);
 }
-.leak-panel {
+.alarm-panels {
+  display: grid;
+  gap: 12px;
+  height: fit-content;
+}
+.alarm-panel {
   position: relative;
   overflow: hidden;
-  min-height: 132px;
   display: grid;
   grid-template-columns: 48px 1fr 34px;
+  height: fit-content;
   align-items: center;
   gap: 14px;
   padding: 18px;
@@ -358,23 +383,23 @@ h2 {
     rgba(51, 184, 164, 0.03)
   );
 }
-.leak-panel::after {
+.alarm-panel::after {
   content: "";
   position: absolute;
   inset: 0 0 auto;
   height: 3px;
   background: var(--clr-primary);
 }
-.leak-panel.alerting {
+.alarm-panel.alerting {
   color: #f0a3ae;
   border-color: rgba(226, 88, 106, 0.45);
   background: rgba(226, 88, 106, 0.1);
   animation: warning-flash 1.1s ease-in-out infinite;
 }
-.leak-panel.alerting::after {
+.alarm-panel.alerting::after {
   background: var(--clr-danger);
 }
-.leak-icon {
+.alarm-icon {
   width: 48px;
   height: 48px;
   display: grid;
@@ -382,30 +407,30 @@ h2 {
   border-radius: 50%;
   background: rgba(51, 184, 164, 0.14);
 }
-.alerting .leak-icon {
+.alerting .alarm-icon {
   background: rgba(226, 88, 106, 0.16);
 }
-.leak-copy span,
-.leak-copy strong,
-.leak-copy small {
+.alarm-copy span,
+.alarm-copy strong,
+.alarm-copy small {
   display: block;
 }
-.leak-copy span {
+.alarm-copy span {
   font-size: var(--fs-body-2xs);
   text-transform: uppercase;
   letter-spacing: var(--ls-header);
 }
-.leak-copy strong {
+.alarm-copy strong {
   margin: 4px 0;
   font-family: var(--ff-primary);
   font-size: 22px;
   letter-spacing: var(--ls-subheader);
 }
-.leak-copy small {
+.alarm-copy small {
   color: var(--neutral-clr-500);
   font-size: var(--fs-body-2xs);
 }
-.leak-state {
+.alarm-state {
   width: 30px;
   height: 30px;
   display: grid;
@@ -413,7 +438,7 @@ h2 {
   border-radius: 50%;
   background: rgba(51, 184, 164, 0.14);
 }
-.alerting .leak-state {
+.alerting .alarm-state {
   background: rgba(226, 88, 106, 0.18);
 }
 .checkmark {
@@ -534,6 +559,7 @@ h2 {
   width: 100%;
   padding: 16px;
   text-align: left;
+  cursor: pointer;
   border: 1px solid var(--border-clr);
   border-radius: var(--radius);
   background: var(--surface-clr);
@@ -793,7 +819,7 @@ h2 {
 
 .analytics-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 326px;
+  grid-template-columns: minmax(0, 1fr);
   gap: 14px;
   margin-top: 24px;
 }
@@ -851,6 +877,10 @@ h2 {
   width: 100%;
   height: 310px;
 }
+/* recharts sets an inline margin-right of 10px on legend items */
+.recharts-legend-item {
+  margin-right: 18px !important;
+}
 .chart-empty {
   height: 100%;
   display: flex;
@@ -868,9 +898,10 @@ h2 {
   width: 100%;
   color-scheme: light;
 }
+/* Tracks mirror .summary-grid so an alert matches one devices card. */
 .alert-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(258px, 1fr));
+  grid-template-columns: repeat(4, minmax(150px, 1fr));
   gap: 12px;
 }
 .alert-card {
@@ -985,11 +1016,9 @@ h2 {
   .metric-grid {
     grid-template-columns: repeat(3, minmax(140px, 1fr));
   }
-  .summary-grid {
+  .summary-grid,
+  .alert-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .analytics-grid {
-    grid-template-columns: minmax(0, 1fr);
   }
   .events-panel {
     display: grid;
@@ -1038,21 +1067,18 @@ h2 {
   .device-card-grid {
     grid-template-columns: minmax(0, 1fr);
   }
-  .alert-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }
 
 @media (max-width: 540px) {
   .overview-grid {
     padding-block: 24px;
   }
-  .leak-panel {
+  .alarm-panel {
     grid-template-columns: 42px 1fr 30px;
     min-height: 116px;
     padding: 14px;
   }
-  .leak-icon {
+  .alarm-icon {
     width: 42px;
     height: 42px;
   }

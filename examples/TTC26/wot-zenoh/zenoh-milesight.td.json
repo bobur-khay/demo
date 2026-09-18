@@ -20,7 +20,10 @@
       }
     }
   ],
-  "@type": ["Thing", "brick:Leak_Detector_Equipment"],
+  "@type": [
+    "Thing",
+    "brick:Leak_Detector_Equipment"
+  ],
   "id": "urn:dev:milesight_em300_zld",
   "title": "milesight em300 zld",
   "description": "Milesight EM300-ZLD leak detection sensor with battery, temperature, humidity, and leak status uplink events.",
@@ -33,6 +36,7 @@
     }
   },
   "security": "otaa_sc",
+  "base": "lorawan://0000000000000000/{appKey}/device",
   "lorav:devEUI": "24e124136f481063",
   "lorav:joinEUI": "0000000000000000",
   "lorav:macVersion": "1.0.2",
@@ -136,7 +140,10 @@
       "@type": "brick:Leak_Alarm",
       "data": {
         "type": "string",
-        "enum": ["normal", "leak"]
+        "enum": [
+          "normal",
+          "leak"
+        ]
       },
       "forms": [
         {

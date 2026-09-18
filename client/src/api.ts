@@ -16,6 +16,7 @@ export interface MetricDefinition {
   unit: string | null;
   minimum: number | null;
   maximum: number | null;
+  semantic_type: string | null;
 }
 
 export interface DeviceDefinition {

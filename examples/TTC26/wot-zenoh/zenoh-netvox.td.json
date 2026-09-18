@@ -20,7 +20,10 @@
       }
     }
   ],
-  "@type": ["Thing", "brick:Sensor_Equipment"],
+  "@type": [
+    "Thing",
+    "brick:Sensor_Equipment"
+  ],
   "id": "urn:dev:netvox:r718a",
   "title": "netvox_r718a",
   "description": "Netvox R718A Temperature and Humidity Sensor for Low Temperature Environment.",
@@ -33,6 +36,7 @@
     }
   },
   "security": "otaa_sc",
+  "base": "lorawan://0000000000000000/{appKey}/device",
   "lorav:devEUI": "00137a1000008bd1",
   "lorav:joinEUI": "0000000000000000",
   "lorav:macVersion": "1.0.2",

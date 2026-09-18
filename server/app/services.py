@@ -22,6 +22,16 @@ def _number(value: Any) -> float | None:
     return float(value) if isinstance(value, int | float) else None
 
 
+def _semantic_type(*sources: dict[str, Any]) -> str | None:
+    for source in sources:
+        raw_type = source.get("@type")
+        candidates = raw_type if isinstance(raw_type, list) else [raw_type]
+        for candidate in candidates:
+            if isinstance(candidate, str) and candidate and candidate != "Thing":
+                return candidate
+    return None
+
+
 def _metric_from_schema(
     name: str, kind: str, raw: dict[str, Any], metadata: dict[str, Any] | None = None
 ) -> MetricDefinition:
@@ -39,6 +49,7 @@ def _metric_from_schema(
         unit=schema.get("unit"),
         minimum=_number(schema.get("minimum")),
         maximum=_number(schema.get("maximum")),
+        semantic_type=_semantic_type(raw, metadata),
     )
 
 
@@ -259,8 +270,13 @@ class WotDataSource:
                     )
                 )
 
+            def on_error(error: Any, metric_name: str = metric.name) -> None:
+                logger.warning(
+                    "Event subscription %s/%s failed: %s", device.id, metric_name, error
+                )
+
             self._subscriptions.append(
-                thing.events[metric.name].subscribe(on_next=on_event)
+                thing.events[metric.name].subscribe(on_next=on_event, on_error=on_error)
             )
         return thing
 

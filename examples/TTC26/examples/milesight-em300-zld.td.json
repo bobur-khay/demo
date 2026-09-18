@@ -9,15 +9,9 @@
       "qudt": "http://qudt.org/schema/qudt/",
       "qunit": "http://qudt.org/vocab/unit/",
       "quantitykind": "http://qudt.org/vocab/quantitykind/",
-      "qudt:unit": {
-        "@type": "@id"
-      },
-      "qudt:hasQuantityKind": {
-        "@type": "@id"
-      },
-      "knx:datapointType": {
-        "@type": "@id"
-      }
+      "qudt:unit": { "@type": "@id" },
+      "qudt:hasQuantityKind": { "@type": "@id" },
+      "knx:datapointType": { "@type": "@id" }
     }
   ],
   "@type": ["Thing", "brick:Leak_Detector_Equipment"],
@@ -33,6 +27,7 @@
     }
   },
   "security": "otaa_sc",
+  "base": "lorawan://0000000000000000/{appKey}/device",
   "lorav:devEUI": "24e124136f481063",
   "lorav:joinEUI": "0000000000000000",
   "lorav:macVersion": "1.0.2",
@@ -54,19 +49,11 @@
     }
   ],
   "lorav:defaultEventingFrequencyMinutes": 10,
-  "brick:hasLocation": {
-    "@id": "urn:example:location:TTC_fair"
-  },
+  "brick:hasLocation": { "@id": "urn:example:location:TTC_fair" },
   "brick:hasPoint": [
-    {
-      "@id": "urn:dev:milesight_em300_zld#temperature"
-    },
-    {
-      "@id": "urn:dev:milesight_em300_zld#humidity"
-    },
-    {
-      "@id": "urn:dev:milesight_em300_zld#leakage_status"
-    }
+    { "@id": "urn:dev:milesight_em300_zld#temperature" },
+    { "@id": "urn:dev:milesight_em300_zld#humidity" },
+    { "@id": "urn:dev:milesight_em300_zld#leakage_status" }
   ],
   "events": {
     "battery": {
@@ -80,10 +67,16 @@
       },
       "forms": [
         {
-          "additionalResponses": [],
-          "contentType": "application/json",
-          "op": "subscribeevent",
-          "href": "zenoh+tcp://localhost:7447/application/d209ff97-929d-46f8-9180-ea2f6c382e90/device/24e124136f481063/event/up/battery"
+          "href": "uplink",
+          "op": [
+            "subscribeevent",
+            "unsubscribeevent"
+          ],
+          "lorav:tag": [
+            1,
+            117
+          ],
+          "lorav:wireType": "u8"
         }
       ]
     },
@@ -102,10 +95,18 @@
       },
       "forms": [
         {
-          "additionalResponses": [],
-          "contentType": "application/json",
-          "op": "subscribeevent",
-          "href": "zenoh+tcp://localhost:7447/application/d209ff97-929d-46f8-9180-ea2f6c382e90/device/24e124136f481063/event/up/temperature"
+          "href": "uplink",
+          "op": [
+            "subscribeevent",
+            "unsubscribeevent"
+          ],
+          "lorav:tag": [
+            3,
+            103
+          ],
+          "lorav:wireType": "s16",
+          "lorav:endian": "little",
+          "lorav:divisor": 10
         }
       ]
     },
@@ -124,10 +125,17 @@
       },
       "forms": [
         {
-          "additionalResponses": [],
-          "contentType": "application/json",
-          "op": "subscribeevent",
-          "href": "zenoh+tcp://localhost:7447/application/d209ff97-929d-46f8-9180-ea2f6c382e90/device/24e124136f481063/event/up/humidity"
+          "href": "uplink",
+          "op": [
+            "subscribeevent",
+            "unsubscribeevent"
+          ],
+          "lorav:tag": [
+            4,
+            104
+          ],
+          "lorav:wireType": "u8",
+          "lorav:divisor": 2
         }
       ]
     },
@@ -136,17 +144,35 @@
       "@type": "brick:Leak_Alarm",
       "data": {
         "type": "string",
-        "enum": ["normal", "leak"]
+        "enum": [
+          "normal",
+          "leak"
+        ]
       },
       "forms": [
         {
-          "additionalResponses": [],
-          "contentType": "application/json",
-          "op": "subscribeevent",
-          "href": "zenoh+tcp://localhost:7447/application/d209ff97-929d-46f8-9180-ea2f6c382e90/device/24e124136f481063/event/up/leakage_status"
+          "href": "uplink",
+          "op": [
+            "subscribeevent",
+            "unsubscribeevent"
+          ],
+          "lorav:tag": [
+            5,
+            0
+          ],
+          "lorav:wireType": "u8",
+          "lorav:valueMap": [
+            {
+              "wireValue": 0,
+              "value": "normal"
+            },
+            {
+              "wireValue": 1,
+              "value": "leak"
+            }
+          ]
         }
       ]
     }
-  },
-  "properties": {}
+  }
 }

@@ -18,6 +18,7 @@ class MetricDefinition:
     unit: str | None = None
     minimum: float | None = None
     maximum: float | None = None
+    semantic_type: str | None = None
 
 
 @dataclass(frozen=True, slots=True)

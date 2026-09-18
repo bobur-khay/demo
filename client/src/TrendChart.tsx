@@ -13,9 +13,15 @@ interface TrendChartProps {
   colors: string[];
   data: Record<string, number | string>[];
   metrics: Array<{ key: string; label: string }>;
+  timeAxis?: boolean;
 }
 
-export default function TrendChart({ colors, data, metrics }: TrendChartProps) {
+export default function TrendChart({
+  colors,
+  data,
+  metrics,
+  timeAxis = false,
+}: TrendChartProps) {
   return (
     <ResponsiveContainer width="100%" height="100%">
       <LineChart
@@ -30,10 +36,15 @@ export default function TrendChart({ colors, data, metrics }: TrendChartProps) {
         <XAxis
           dataKey="timestamp"
           tickFormatter={(value) =>
-            new Date(value).toLocaleDateString([], {
-              month: "short",
-              day: "numeric",
-            })
+            timeAxis
+              ? new Date(value).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              : new Date(value).toLocaleDateString([], {
+                  month: "short",
+                  day: "numeric",
+                })
           }
           minTickGap={34}
           stroke="#7e807f"

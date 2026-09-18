@@ -20,10 +20,13 @@
       }
     }
   ],
-  "@type": ["Thing", "brick:Leak_Detector_Equipment"],
-  "id": "urn:dev:milesight_em300_zld",
-  "title": "milesight em300 zld",
-  "description": "Milesight EM300-ZLD leak detection sensor with battery, temperature, humidity, and leak status uplink events.",
+  "@type": [
+    "Thing",
+    "brick:Sensor_Equipment"
+  ],
+  "id": "urn:dev:adeunis_comfort2",
+  "title": "adeunis comfort2",
+  "description": "Adeunis Comfort 2 basic sensor-reading mapping for the official 0x4C data frame (temperature/humidity history): first sample only.",
   "securityDefinitions": {
     "otaa_sc": {
       "scheme": "apikey",
@@ -33,62 +36,58 @@
     }
   },
   "security": "otaa_sc",
-  "lorav:devEUI": "24e124136f481063",
+  "base": "lorawan://0000000000000000/{appKey}/device",
+  "lorav:devEUI": "0018b2100000d2ea",
   "lorav:joinEUI": "0000000000000000",
   "lorav:macVersion": "1.0.2",
-  "schema:manufacturer": "Milesight",
-  "schema:mpn": "EM300-ZLD",
+  "schema:manufacturer": "Adeunis",
+  "schema:mpn": "Comfort 2",
   "schema:version": "1",
   "schema:softwareVersion": "1",
   "lorav:region": "EU868",
   "lorav:frequencyPlan": "EU_863_870",
-  "lorav:payloadLayout": "tlv",
-  "lorav:tagFields": [
-    {
-      "name": "channel_id",
-      "type": "u8"
-    },
-    {
-      "name": "channel_type",
-      "type": "u8"
-    }
-  ],
+  "lorav:payloadLayout": "fixed",
   "lorav:defaultEventingFrequencyMinutes": 10,
   "brick:hasLocation": {
     "@id": "urn:example:location:TTC_fair"
   },
   "brick:hasPoint": [
     {
-      "@id": "urn:dev:milesight_em300_zld#temperature"
+      "@id": "urn:dev:adeunis_comfort2#temperature"
     },
     {
-      "@id": "urn:dev:milesight_em300_zld#humidity"
-    },
-    {
-      "@id": "urn:dev:milesight_em300_zld#leakage_status"
+      "@id": "urn:dev:adeunis_comfort2#humidity"
     }
   ],
   "events": {
-    "battery": {
+    "frameCode": {
       "data": {
-        "type": "integer",
-        "unit": "%",
-        "qudt:unit": "qunit:PERCENT",
-        "qudt:hasQuantityKind": "quantitykind:DimensionlessRatio",
-        "minimum": 0,
-        "maximum": 100
+        "type": "integer"
       },
       "forms": [
         {
           "additionalResponses": [],
+          "href": "zenoh+tcp://localhost:7447/application/d209ff97-929d-46f8-9180-ea2f6c382e90/device/0018b2100000d2ea/event/up/frameCode",
           "contentType": "application/json",
-          "op": "subscribeevent",
-          "href": "zenoh+tcp://localhost:7447/application/d209ff97-929d-46f8-9180-ea2f6c382e90/device/24e124136f481063/event/up/battery"
+          "op": "subscribeevent"
+        }
+      ]
+    },
+    "statusByte": {
+      "data": {
+        "type": "integer"
+      },
+      "forms": [
+        {
+          "additionalResponses": [],
+          "href": "zenoh+tcp://localhost:7447/application/d209ff97-929d-46f8-9180-ea2f6c382e90/device/0018b2100000d2ea/event/up/statusByte",
+          "contentType": "application/json",
+          "op": "subscribeevent"
         }
       ]
     },
     "temperature": {
-      "@id": "urn:dev:milesight_em300_zld#temperature",
+      "@id": "urn:dev:adeunis_comfort2#temperature",
       "@type": "brick:Temperature_Sensor",
       "knx:datapointType": "knx:valueTemp",
       "data": {
@@ -96,54 +95,38 @@
         "unit": "Cel",
         "qudt:unit": "qunit:DEG_C",
         "qudt:hasQuantityKind": "quantitykind:Temperature",
-        "minimum": -30,
-        "maximum": 70,
+        "minimum": -20,
+        "maximum": 60,
         "multipleOf": 0.1
       },
       "forms": [
         {
           "additionalResponses": [],
+          "href": "zenoh+tcp://localhost:7447/application/d209ff97-929d-46f8-9180-ea2f6c382e90/device/0018b2100000d2ea/event/up/temperature",
           "contentType": "application/json",
-          "op": "subscribeevent",
-          "href": "zenoh+tcp://localhost:7447/application/d209ff97-929d-46f8-9180-ea2f6c382e90/device/24e124136f481063/event/up/temperature"
+          "op": "subscribeevent"
         }
       ]
     },
     "humidity": {
-      "@id": "urn:dev:milesight_em300_zld#humidity",
+      "@id": "urn:dev:adeunis_comfort2#humidity",
       "@type": "brick:Relative_Humidity_Sensor",
       "knx:datapointType": "knx:valueHumidity",
       "data": {
-        "type": "number",
+        "type": "integer",
         "unit": "%RH",
         "qudt:unit": "qunit:PERCENT_RH",
         "qudt:hasQuantityKind": "quantitykind:RelativeHumidity",
         "minimum": 0,
-        "maximum": 100,
-        "multipleOf": 0.5
+        "maximum": 85,
+        "multipleOf": 1
       },
       "forms": [
         {
           "additionalResponses": [],
+          "href": "zenoh+tcp://localhost:7447/application/d209ff97-929d-46f8-9180-ea2f6c382e90/device/0018b2100000d2ea/event/up/humidity",
           "contentType": "application/json",
-          "op": "subscribeevent",
-          "href": "zenoh+tcp://localhost:7447/application/d209ff97-929d-46f8-9180-ea2f6c382e90/device/24e124136f481063/event/up/humidity"
-        }
-      ]
-    },
-    "leakage_status": {
-      "@id": "urn:dev:milesight_em300_zld#leakage_status",
-      "@type": "brick:Leak_Alarm",
-      "data": {
-        "type": "string",
-        "enum": ["normal", "leak"]
-      },
-      "forms": [
-        {
-          "additionalResponses": [],
-          "contentType": "application/json",
-          "op": "subscribeevent",
-          "href": "zenoh+tcp://localhost:7447/application/d209ff97-929d-46f8-9180-ea2f6c382e90/device/24e124136f481063/event/up/leakage_status"
+          "op": "subscribeevent"
         }
       ]
     }
