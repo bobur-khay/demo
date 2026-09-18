@@ -122,7 +122,7 @@ function normalizeUnit(unit: string | null) {
 function formatValue(value: TelemetryPoint["value"], unit: string | null) {
   if (value === null || value === undefined) return "—";
   if (typeof value !== "number") return String(value);
-  const digits = Math.abs(value) >= 100 ? 0 : Math.abs(value) >= 10 ? 1 : 2;
+  const digits = Math.abs(value) >= 100 ? 1 : Math.abs(value) >= 10 ? 2 : 3;
   const formatted = value.toLocaleString(undefined, {
     maximumFractionDigits: digits,
   });

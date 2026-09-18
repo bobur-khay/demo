@@ -435,6 +435,33 @@
           "contentType": "application/json"
         }
       ]
+    },
+    "line-frequency": {
+      "@type": "brick:Frequency",
+      "id": "11cf2626-0b7f-4511-a4c2-2350d7cc7b8a",
+      "title": "Line Frequency",
+      "unit": "qunit:HZ",
+      "type": "number",
+      "forms": [
+        {
+          "href": "zenoh+tcp://localhost:7447/modbus-proxy/property/requests/siemens-sentron-7km-pac4200/line-frequency",
+          "additionalResponses": [],
+          "op": "readproperty",
+          "contentType": "application/json"
+        },
+        {
+          "href": "zenoh+tcp://localhost:7447/modbus-proxy/property/requests/siemens-sentron-7km-pac4200/line-frequency",
+          "additionalResponses": [],
+          "op": "writeproperty",
+          "contentType": "application/json"
+        },
+        {
+          "href": "zenoh+tcp://localhost:7447/modbus-proxy/property/updates/siemens-sentron-7km-pac4200/line-frequency",
+          "additionalResponses": [],
+          "op": "observeproperty",
+          "contentType": "application/json"
+        }
+      ]
     }
   }
 }

@@ -185,6 +185,7 @@ class MockDataSource:
             "active-power-l1": (920.0, 180.0),
             "active-power-l2": (1040.0, 190.0),
             "active-power-l3": (870.0, 160.0),
+            "line-frequency": (50.0, 0.2),
         }
         center, spread = ranges.get(metric.name, (50.0, 10.0))
         value = center + spread * wave + randomizer.uniform(-spread * 0.12, spread * 0.12)
@@ -291,12 +292,17 @@ class WotDataSource:
         )
         properties = [metric for metric in device.metrics if metric.kind == "property"]
         values = await asyncio.gather(
-            *(thing.read_property(metric.name) for metric in properties)
+            *(thing.read_property(metric.name) for metric in properties),
+            return_exceptions=True,
         )
         points.extend(
             TelemetryPoint(device.id, metric.name, value, now, "wot")
             for metric, value in zip(properties, values)
+            if not isinstance(value, BaseException)
         )
+        for metric, value in zip(properties, values):
+            if isinstance(value, BaseException):
+                logger.debug("Unable to read property %s/%s: %s", device.id, metric.name, value)
         return points
 
 

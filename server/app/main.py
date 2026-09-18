@@ -106,6 +106,7 @@ class Runtime:
     settings: Settings
     devices: dict[str, DeviceDefinition]
     store: TelemetryStore
+    history_store: TelemetryStore
     source: DataSource
     influx: InfluxRepository | None
     influx_status: str = "disabled"
@@ -166,13 +167,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     )
     devices = load_devices(settings.tds_directory)
     store = TelemetryStore(settings.max_points_per_series)
+    history_store = TelemetryStore(settings.max_points_per_series)
     source = _create_data_source(settings)
     influx = (
         InfluxRepository(settings.influx, settings.max_points_per_series)
         if settings.history_data_source == "influxdb" and settings.influx
         else None
     )
-    runtime = Runtime(settings, devices, store, source, influx)
+    runtime = Runtime(settings, devices, store, history_store, source, influx)
     app.state.runtime = runtime
 
     await source.start()
@@ -185,8 +187,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             runtime.influx_status = "error"
             logger.warning("Unable to reach InfluxDB: %s", error)
     else:
-        # Trends fall back to a deterministic synthetic series.
-        await store.append_many(
+        # Trends fall back to a deterministic synthetic series, kept separate from live data.
+        await history_store.append_many(
             MockDataSource().history(devices.values(), settings.history_days)
         )
 
@@ -290,7 +292,7 @@ async def device_history(
         return {
             "deviceId": device_id,
             "source": runtime.settings.history_data_source,
-            "series": await runtime.store.history(device_id, selected),
+            "series": await runtime.history_store.history(device_id, selected),
         }
 
     window = minutes or runtime.settings.history_days * 24 * 60
