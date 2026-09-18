@@ -41,6 +41,7 @@ logger = logging.getLogger(__name__)
 @dataclass(frozen=True, slots=True)
 class Settings:
     data_source: str
+    history_data_source: str
     poll_interval_seconds: float
     history_days: int
     max_points_per_series: int
@@ -51,29 +52,40 @@ class Settings:
     @classmethod
     def from_environment(cls) -> "Settings":
         influx_host = os.getenv("INFLUX_HOST")
-        influx_token = os.getenv("INFLUX_TOKEN") or os.getenv("INFLUX_DB_TOKEN")
         influx_database = os.getenv("INFLUX_DATABASE")
         influx = None
-        if influx_host and influx_token and influx_database:
+        if influx_host and influx_database:
             influx = InfluxConfig(
                 host=influx_host,
-                token=influx_token,
                 database=influx_database,
-                organization=os.getenv("INFLUX_ORG"),
-                measurement=os.getenv("INFLUX_MEASUREMENT", "device_telemetry"),
+                username=os.getenv("INFLUX_USERNAME") or None,
+                password=os.getenv("INFLUX_PASSWORD") or None,
+                measurement_prefix=os.getenv(
+                    "INFLUX_MEASUREMENT_PREFIX", "device_frmpayload_data_"
+                ),
             )
-        elif any((influx_host, influx_token, influx_database)):
+        elif influx_host or influx_database:
             logger.warning(
-                "InfluxDB is disabled because INFLUX_HOST, INFLUX_TOKEN, and "
-                "INFLUX_DATABASE are not all configured"
+                "InfluxDB is disabled because INFLUX_HOST and INFLUX_DATABASE "
+                "are not both configured"
             )
 
         source = os.getenv("DATA_SOURCE", "wot").lower()
         if source not in {"mock", "wot"}:
             raise ValueError("DATA_SOURCE must be 'mock' or 'wot'")
+        history_source = os.getenv("HISTORY_DATA_SOURCE", "mock").lower()
+        if history_source not in {"mock", "influxdb"}:
+            raise ValueError("HISTORY_DATA_SOURCE must be 'mock' or 'influxdb'")
+        if history_source == "influxdb" and influx is None:
+            logger.warning(
+                "HISTORY_DATA_SOURCE=influxdb needs INFLUX_HOST and INFLUX_DATABASE; "
+                "falling back to generated history"
+            )
+            history_source = "mock"
         default_tds = PROJECT_ROOT / "tds"
         return cls(
             data_source=source,
+            history_data_source=history_source,
             poll_interval_seconds=float(os.getenv("POLL_INTERVAL_SECONDS", "2")),
             history_days=int(os.getenv("HISTORY_DAYS", "30")),
             max_points_per_series=int(os.getenv("MAX_POINTS_PER_SERIES", "50000")),
@@ -140,13 +152,6 @@ async def _poll_forever(runtime: Runtime) -> None:
                 continue
             points.extend(result)
         await runtime.store.append_many(points)
-        if runtime.influx is not None and points:
-            try:
-                await runtime.influx.write(points)
-                runtime.influx_status = "connected"
-            except Exception as error:
-                runtime.influx_status = "error"
-                logger.warning("Unable to persist telemetry to InfluxDB: %s", error)
         elapsed = monotonic() - started_at
         await asyncio.sleep(max(0, runtime.settings.poll_interval_seconds - elapsed))
 
@@ -154,27 +159,36 @@ async def _poll_forever(runtime: Runtime) -> None:
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     settings = Settings.from_environment()
-    logger.info("Starting with %s data source", settings.data_source)
+    logger.info(
+        "Starting with %s live data and %s history",
+        settings.data_source,
+        settings.history_data_source,
+    )
     devices = load_devices(settings.tds_directory)
     store = TelemetryStore(settings.max_points_per_series)
     source = _create_data_source(settings)
-    influx = InfluxRepository(settings.influx) if settings.influx else None
+    influx = (
+        InfluxRepository(settings.influx, settings.max_points_per_series)
+        if settings.history_data_source == "influxdb" and settings.influx
+        else None
+    )
     runtime = Runtime(settings, devices, store, source, influx)
     app.state.runtime = runtime
 
     await source.start()
     if influx is not None:
         try:
-            await store.append_many(await influx.load_history(settings.history_days))
+            measurements = await influx.measurements(refresh=True)
             runtime.influx_status = "connected"
+            logger.info("InfluxDB exposes %d measurements", len(measurements))
         except Exception as error:
             runtime.influx_status = "error"
-            logger.warning("Unable to load InfluxDB history: %s", error)
-
-    if settings.data_source == "mock" and runtime.influx_status != "connected":
-        mock_source = source
-        if isinstance(mock_source, MockDataSource):
-            await store.append_many(mock_source.history(devices.values(), settings.history_days))
+            logger.warning("Unable to reach InfluxDB: %s", error)
+    else:
+        # Trends fall back to a deterministic synthetic series.
+        await store.append_many(
+            MockDataSource().history(devices.values(), settings.history_days)
+        )
 
     poll_task = asyncio.create_task(_poll_forever(runtime), name="telemetry-poller")
     try:
@@ -185,7 +199,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             await poll_task
         await source.stop()
         if influx is not None:
-            influx.close()
+            await influx.close()
 
 
 app = FastAPI(
@@ -219,6 +233,7 @@ async def health() -> dict[str, object]:
     return {
         "status": "ok" if runtime.influx_status != "error" else "degraded",
         "dataSource": runtime.settings.data_source,
+        "historySource": runtime.settings.history_data_source,
         "influx": runtime.influx_status,
         "deviceCount": len(runtime.devices),
         "connectedCount": len(runtime.connected_devices()),
@@ -261,22 +276,70 @@ async def set_device_connection(
 async def device_history(
     device_id: str,
     metrics: str | None = Query(default=None, description="Comma-separated metric names"),
+    minutes: int | None = Query(default=None, ge=1, description="Look-back window in minutes"),
 ) -> dict[str, object]:
     device = _device_or_404(device_id)
+    runtime = _runtime()
     selected = {name.strip() for name in metrics.split(",")} if metrics else None
     known_metrics = {metric.name for metric in device.metrics}
     if selected and not selected.issubset(known_metrics):
         unknown = sorted(selected - known_metrics)
         raise HTTPException(status_code=400, detail=f"Unknown metrics: {', '.join(unknown)}")
-    return {
-        "deviceId": device_id,
-        "series": await _runtime().store.history(device_id, selected),
-    }
+
+    if runtime.influx is None:
+        return {
+            "deviceId": device_id,
+            "source": runtime.settings.history_data_source,
+            "series": await runtime.store.history(device_id, selected),
+        }
+
+    window = minutes or runtime.settings.history_days * 24 * 60
+    wanted = [
+        metric.name
+        for metric in device.metrics
+        if selected is None or metric.name in selected
+    ]
+    try:
+        series = await runtime.influx.history(device, wanted, window)
+        runtime.influx_status = "connected"
+    except Exception as error:
+        runtime.influx_status = "error"
+        logger.warning("Unable to read history for %s from InfluxDB: %s", device_id, error)
+        raise HTTPException(status_code=503, detail="History backend unavailable") from error
+    return {"deviceId": device_id, "source": "influxdb", "series": series}
+
+
+@app.get("/api/devices/{device_id}/history-metrics")
+async def device_history_metrics(device_id: str) -> dict[str, object]:
+    device = _device_or_404(device_id)
+    runtime = _runtime()
+    if runtime.influx is None:
+        available = [
+            metric.name
+            for metric in device.metrics
+            if metric.value_type in {"number", "integer"}
+        ]
+    else:
+        try:
+            available = list(await runtime.influx.available_metrics(device))
+        except Exception as error:
+            runtime.influx_status = "error"
+            logger.warning("Unable to list InfluxDB metrics for %s: %s", device_id, error)
+            available = []
+    return {"deviceId": device_id, "metrics": available}
 
 
 @app.get("/api/tds/{device_id}")
 async def thing_description(device_id: str) -> dict[str, object]:
     return _device_or_404(device_id).td
+
+
+@app.get("/api/tds/{device_id}/original")
+async def original_thing_description(device_id: str) -> dict[str, object]:
+    original = _device_or_404(device_id).original_td
+    if not original:
+        raise HTTPException(status_code=404, detail="Original Thing Description not found")
+    return original
 
 
 @app.websocket("/api/ws/devices/{device_id}")

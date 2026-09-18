@@ -28,6 +28,10 @@ class DeviceDefinition:
     description: str
     td: dict[str, Any] = field(repr=False)
     metrics: tuple[MetricDefinition, ...]
+    # LoRaWAN identifier used as the `dev_eui` tag in the ChirpStack InfluxDB database.
+    dev_eui: str | None = None
+    # Vendor TD the zenoh proxy TD was derived from, kept for side-by-side inspection.
+    original_td: dict[str, Any] = field(default_factory=dict, repr=False)
 
 
 @dataclass(frozen=True, slots=True)

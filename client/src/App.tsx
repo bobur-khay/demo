@@ -31,12 +31,14 @@ import {
   getDeviceHistory,
   getDevices,
   getHealth,
+  getThingDescription,
   setDeviceConnection,
   type DeviceDefinition,
   type HealthStatus,
   type MetricDefinition,
   type TelemetryPoint,
   type TelemetryValue,
+  type ThingDescriptionVariant,
 } from "./api";
 import { useDeviceStream } from "./useDeviceStream";
 import "./App.css";
@@ -198,6 +200,139 @@ function lastSeen(device: DeviceDefinition) {
     .at(-1);
 }
 
+// Signals worth plotting first when a device exposes more series than a chart can show.
+const TREND_PRIORITY = [
+  "temperature",
+  "humidity",
+  "power",
+  "current",
+  "voltage",
+  "battery",
+];
+
+function trendMetricsOf(device: DeviceDefinition) {
+  const rank = (name: string) => {
+    const index = TREND_PRIORITY.findIndex((key) =>
+      name.toLowerCase().includes(key),
+    );
+    return index === -1 ? TREND_PRIORITY.length : index;
+  };
+  return device.metrics
+    .filter((metric) => ["number", "integer"].includes(metric.value_type))
+    .slice()
+    .sort((left, right) => rank(left.name) - rank(right.name))
+    .map((metric) => metric.name);
+}
+
+interface DeviceTrendPanelProps {
+  device: DeviceDefinition;
+  metricKey: string;
+  rangeMinutes: number;
+  timeAxis: boolean;
+  onOpen: (deviceId: string) => void;
+}
+
+function DeviceTrendPanel({
+  device,
+  metricKey,
+  rangeMinutes,
+  timeAxis,
+  onOpen,
+}: DeviceTrendPanelProps) {
+  const [series, setSeries] =
+    useState<Record<string, TelemetryPoint[]>>(EMPTY_HISTORY);
+  const [status, setStatus] = useState<"loading" | "ready" | "error">(
+    "loading",
+  );
+  const deviceId = device.id;
+
+  useEffect(() => {
+    const metrics = metricKey ? metricKey.split(",") : [];
+    if (metrics.length === 0) {
+      setSeries(EMPTY_HISTORY);
+      setStatus("ready");
+      return;
+    }
+    const controller = new AbortController();
+    setStatus("loading");
+    getDeviceHistory(deviceId, metrics, rangeMinutes, controller.signal)
+      .then((response) => {
+        setSeries(response.series);
+        setStatus("ready");
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setStatus("error");
+      });
+    return () => controller.abort();
+  }, [deviceId, metricKey, rangeMinutes]);
+
+  // Only series the history backend actually returned are charted.
+  const chartMetrics = useMemo(
+    () =>
+      (metricKey ? metricKey.split(",") : [])
+        .filter((metric) => (series[metric]?.length ?? 0) > 1)
+        .slice(0, 3),
+    [metricKey, series],
+  );
+  const data = useMemo(
+    () => buildChartData(series, chartMetrics, rangeMinutes),
+    [chartMetrics, rangeMinutes, series],
+  );
+  const titles = new Map(
+    device.metrics.map((metric) => [metric.name, metric.title]),
+  );
+  const Icon = deviceIcon(device);
+
+  return (
+    <article className="chart-panel">
+      <div className="section-heading chart-heading">
+        <div>
+          <p className="eyebrow">
+            <Icon size={12} /> {device.title}
+          </p>
+          <h2>{chartMetrics.length ? "Recent trend" : "No trend data"}</h2>
+        </div>
+        <button
+          className="trend-open"
+          onClick={() => onOpen(deviceId)}
+          type="button"
+        >
+          Open device
+        </button>
+      </div>
+      <div className="chart-wrap compact">
+        {status === "loading" ? (
+          <div className="chart-empty">
+            <RefreshCw className="spin" size={22} /> Loading history
+          </div>
+        ) : status === "error" ? (
+          <div className="chart-empty">History unavailable</div>
+        ) : data.length ? (
+          <Suspense
+            fallback={
+              <div className="chart-empty">
+                <RefreshCw className="spin" size={22} /> Loading chart
+              </div>
+            }
+          >
+            <TrendChart
+              colors={CHART_COLORS}
+              data={data}
+              timeAxis={timeAxis}
+              metrics={chartMetrics.map((metric) => ({
+                key: metric,
+                label: titles.get(metric) || metric,
+              }))}
+            />
+          </Suspense>
+        ) : (
+          <div className="chart-empty">No stored history in this range</div>
+        )}
+      </div>
+    </article>
+  );
+}
+
 interface MeasurementAverage {
   key: string;
   label: string;
@@ -357,10 +492,15 @@ function App() {
   }>({ series: {} });
   const [error, setError] = useState<string>();
   const [rangeKey, setRangeKey] = useState<RangeKey>("7d");
+  const [fleetRangeKey, setFleetRangeKey] = useState<RangeKey>("24h");
   const [phaseGroup, setPhaseGroup] = useState<PhaseGroup>("voltage");
   const [view, setView] = useState<View>("dashboard");
   const [pendingIds, setPendingIds] = useState<string[]>([]);
   const [detachTarget, setDetachTarget] = useState<DeviceDefinition>();
+  const [tdTarget, setTdTarget] = useState<DeviceDefinition>();
+  const [tdVariant, setTdVariant] = useState<ThingDescriptionVariant>("zenoh");
+  const [tdDocument, setTdDocument] = useState<string>();
+  const [tdError, setTdError] = useState<string>();
   const [dropZone, setDropZone] = useState<string>();
   const [onboardError, setOnboardError] = useState<string>();
   const eventRef = useRef<HTMLUiEventElement>(null);
@@ -416,6 +556,25 @@ function App() {
       window.clearInterval(interval);
     };
   }, [view]);
+
+  const tdTargetId = tdTarget?.id;
+  useEffect(() => {
+    if (!tdTargetId) return;
+    const controller = new AbortController();
+    setTdDocument(undefined);
+    setTdError(undefined);
+    getThingDescription(tdTargetId, tdVariant, controller.signal)
+      .then((document) => setTdDocument(JSON.stringify(document, null, 2)))
+      .catch(() => {
+        if (controller.signal.aborted) return;
+        setTdError(
+          tdVariant === "original"
+            ? "No original Thing Description is stored for this device."
+            : "Unable to load the Thing Description.",
+        );
+      });
+    return () => controller.abort();
+  }, [tdTargetId, tdVariant]);
 
   const selectedDevice = devices.find(
     (device) => device.id === selectedId && device.connected,
@@ -478,18 +637,23 @@ function App() {
   const historyMetrics = useMemo(() => {
     if (!selectedDevice) return [];
     if (isSentron) return Object.values(PHASE_GROUPS).flat();
-    return selectedDevice.metrics
-      .filter((metric) => ["number", "integer"].includes(metric.value_type))
-      .slice(0, 4)
-      .map((metric) => metric.name);
+    return trendMetricsOf(selectedDevice);
   }, [isSentron, selectedDevice]);
+  const rangeMinutes =
+    RANGE_OPTIONS.find((option) => option.key === rangeKey)?.minutes ??
+    7 * 24 * 60;
 
   useEffect(() => {
     if (!selectedDevice || historyMetrics.length === 0) {
       return;
     }
     const controller = new AbortController();
-    getDeviceHistory(selectedDevice.id, historyMetrics, controller.signal)
+    getDeviceHistory(
+      selectedDevice.id,
+      historyMetrics,
+      rangeMinutes,
+      controller.signal,
+    )
       .then((response) => {
         setHistoryState({
           deviceId: response.deviceId,
@@ -507,7 +671,7 @@ function App() {
         }
       });
     return () => controller.abort();
-  }, [historyMetrics, selectedDevice]);
+  }, [historyMetrics, rangeMinutes, selectedDevice]);
 
   useEffect(() => {
     const eventElement = eventRef.current;
@@ -557,21 +721,20 @@ function App() {
     };
   }, [view]);
 
-  const chartMetrics = isSentron
-    ? PHASE_GROUPS[phaseGroup]
-    : historyMetrics.slice(0, 3);
   const history =
     historyState.deviceId === selectedDevice?.id
       ? historyState.series
       : EMPTY_HISTORY;
+  const chartMetrics = isSentron
+    ? PHASE_GROUPS[phaseGroup]
+    : historyMetrics
+        .filter((metric) => (history[metric]?.length ?? 0) > 1)
+        .slice(0, 3);
   const historyLoading = Boolean(
     selectedDevice &&
     historyMetrics.length &&
     historyState.deviceId !== selectedDevice.id,
   );
-  const rangeMinutes =
-    RANGE_OPTIONS.find((option) => option.key === rangeKey)?.minutes ??
-    7 * 24 * 60;
   const chartData = useMemo(
     () => buildChartData(history, chartMetrics, rangeMinutes),
     [chartMetrics, history, rangeMinutes],
@@ -585,6 +748,18 @@ function App() {
     .at(-1);
   const averages = useMemo(
     () => buildAverages(connectedDevices),
+    [connectedDevices],
+  );
+  const fleetRangeMinutes =
+    RANGE_OPTIONS.find((option) => option.key === fleetRangeKey)?.minutes ??
+    24 * 60;
+  // Joining the names keeps the per-panel fetch stable across device polls.
+  const trendPanels = useMemo(
+    () =>
+      connectedDevices.map((device) => ({
+        device,
+        metricKey: trendMetricsOf(device).join(","),
+      })),
     [connectedDevices],
   );
   const signalCount = connectedDevices.reduce(
@@ -837,8 +1012,8 @@ function App() {
           </div>
           <div>
             <Cloud size={16} />
-            <span>InfluxDB</span>
-            <strong>{health?.influx || "—"}</strong>
+            <span>History</span>
+            <strong>{health?.historySource || "—"}</strong>
           </div>
         </div>
       </aside>
@@ -941,6 +1116,11 @@ function App() {
               <article className="summary-card">
                 <span>Data source</span>
                 <strong>{health?.dataSource || "—"}</strong>
+                <small>Live readings</small>
+              </article>
+              <article className="summary-card">
+                <span>History source</span>
+                <strong>{health?.historySource || "—"}</strong>
                 <small>InfluxDB {health?.influx || "—"}</small>
               </article>
             </section>
@@ -977,6 +1157,46 @@ function App() {
                   })
                 ) : (
                   <p className="chart-empty">No numeric readings yet</p>
+                )}
+              </div>
+            </section>
+
+            <section className="metrics-section">
+              <div className="section-heading">
+                <div>
+                  <p className="eyebrow">Historical telemetry</p>
+                  <h2>Trends</h2>
+                </div>
+                <div className="range-control" aria-label="Trend range">
+                  {RANGE_OPTIONS.map((option) => (
+                    <button
+                      key={option.key}
+                      className={fleetRangeKey === option.key ? "active" : ""}
+                      type="button"
+                      onClick={() => setFleetRangeKey(option.key)}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="trend-grid">
+                {trendPanels.length ? (
+                  trendPanels.map(({ device, metricKey }) => (
+                    <DeviceTrendPanel
+                      device={device}
+                      key={device.id}
+                      metricKey={metricKey}
+                      onOpen={(deviceId) => {
+                        setSelectedId(deviceId);
+                        setView("device");
+                      }}
+                      rangeMinutes={fleetRangeMinutes}
+                      timeAxis={fleetRangeMinutes <= 24 * 60}
+                    />
+                  ))
+                ) : (
+                  <p className="chart-empty">No device is onboarded</p>
                 )}
               </div>
             </section>
@@ -1072,15 +1292,28 @@ function App() {
                 </p>
                 <div className="device-meta">
                   {selectedDevice && (
-                    <button
-                      className="connection-button detached"
-                      disabled={pendingIds.includes(selectedDevice.id)}
-                      onClick={() => setDetachTarget(selectedDevice)}
-                      type="button"
-                    >
-                      <Unplug size={14} />
-                      Detach device
-                    </button>
+                    <>
+                      <button
+                        className="connection-button"
+                        onClick={() => {
+                          setTdVariant("zenoh");
+                          setTdTarget(selectedDevice);
+                        }}
+                        type="button"
+                      >
+                        <FileJson size={14} />
+                        Thing Description
+                      </button>
+                      <button
+                        className="connection-button detached"
+                        disabled={pendingIds.includes(selectedDevice.id)}
+                        onClick={() => setDetachTarget(selectedDevice)}
+                        type="button"
+                      >
+                        <Unplug size={14} />
+                        Detach device
+                      </button>
+                    </>
                   )}
                 </div>
               </div>
@@ -1247,6 +1480,62 @@ function App() {
           </>
         )}
       </main>
+
+      {tdTarget && (
+        <div
+          className="modal-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="td-title"
+        >
+          <div className="modal-card wide">
+            <h3 id="td-title">{tdTarget.title}</h3>
+            <p>
+              {tdVariant === "zenoh"
+                ? "Zenoh Thing Description consumed by the dashboard."
+                : "Original vendor Thing Description this proxy was derived from."}
+            </p>
+            <div className="td-switch">
+              <button
+                className={tdVariant === "zenoh" ? "td-tab active" : "td-tab"}
+                onClick={() => setTdVariant("zenoh")}
+                type="button"
+              >
+                Zenoh TD
+              </button>
+              <button
+                className={
+                  tdVariant === "original" ? "td-tab active" : "td-tab"
+                }
+                onClick={() => setTdVariant("original")}
+                type="button"
+              >
+                Original TD
+              </button>
+            </div>
+            <div className="td-viewer">
+              {tdError ? (
+                <p className="td-error">{tdError}</p>
+              ) : tdDocument ? (
+                <pre>{tdDocument}</pre>
+              ) : (
+                <p className="td-loading">
+                  <RefreshCw className="spin" size={16} /> Loading
+                </p>
+              )}
+            </div>
+            <div className="modal-actions">
+              <button
+                className="modal-button"
+                onClick={() => setTdTarget(undefined)}
+                type="button"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {detachTarget && (
         <div

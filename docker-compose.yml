@@ -6,14 +6,15 @@ services:
     restart: unless-stopped
     environment:
       DATA_SOURCE: ${DATA_SOURCE:-wot}
+      HISTORY_DATA_SOURCE: ${HISTORY_DATA_SOURCE:-influxdb}
       POLL_INTERVAL_SECONDS: ${POLL_INTERVAL_SECONDS:-2}
       HISTORY_DAYS: ${HISTORY_DAYS:-30}
       MAX_POINTS_PER_SERIES: ${MAX_POINTS_PER_SERIES:-50000}
       INFLUX_HOST: ${INFLUX_HOST:-}
-      INFLUX_TOKEN: ${INFLUX_TOKEN:-}
       INFLUX_DATABASE: ${INFLUX_DATABASE:-}
-      INFLUX_ORG: ${INFLUX_ORG:-}
-      INFLUX_MEASUREMENT: ${INFLUX_MEASUREMENT:-device_telemetry}
+      INFLUX_USERNAME: ${INFLUX_USERNAME:-}
+      INFLUX_PASSWORD: ${INFLUX_PASSWORD:-}
+      INFLUX_MEASUREMENT_PREFIX: ${INFLUX_MEASUREMENT_PREFIX:-device_frmpayload_data_}
     expose:
       - "8000"
     healthcheck:

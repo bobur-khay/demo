@@ -14,11 +14,10 @@ from app.types import DeviceDefinition, MetricDefinition
 
 def configure_mock(monkeypatch) -> None:
     monkeypatch.setenv("DATA_SOURCE", "mock")
+    monkeypatch.setenv("HISTORY_DATA_SOURCE", "mock")
     monkeypatch.setenv("HISTORY_DAYS", "1")
     monkeypatch.setenv("POLL_INTERVAL_SECONDS", "0.05")
     monkeypatch.delenv("INFLUX_HOST", raising=False)
-    monkeypatch.delenv("INFLUX_TOKEN", raising=False)
-    monkeypatch.delenv("INFLUX_DB_TOKEN", raising=False)
     monkeypatch.delenv("INFLUX_DATABASE", raising=False)
 
 
@@ -35,6 +34,28 @@ def test_environment_file_selects_mock_without_overriding_process_env(
     monkeypatch.setenv("DATA_SOURCE", "wot")
     _load_environment(env_file)
     assert isinstance(_create_data_source(Settings.from_environment()), WotDataSource)
+
+
+def test_history_data_source_toggles_the_history_backend(monkeypatch) -> None:
+    monkeypatch.setenv("INFLUX_HOST", "http://influx:8086")
+    monkeypatch.setenv("INFLUX_DATABASE", "chirpstack")
+
+    monkeypatch.setenv("HISTORY_DATA_SOURCE", "influxdb")
+    influx_settings = Settings.from_environment()
+    assert influx_settings.history_data_source == "influxdb"
+    assert influx_settings.influx is not None
+
+    monkeypatch.setenv("HISTORY_DATA_SOURCE", "mock")
+    assert Settings.from_environment().history_data_source == "mock"
+
+    # Without connection details the influxdb mode degrades to generated history.
+    monkeypatch.setenv("HISTORY_DATA_SOURCE", "influxdb")
+    monkeypatch.delenv("INFLUX_DATABASE")
+    assert Settings.from_environment().history_data_source == "mock"
+
+    monkeypatch.setenv("HISTORY_DATA_SOURCE", "nowhere")
+    with pytest.raises(ValueError):
+        Settings.from_environment()
 
 
 def test_device_inventory_and_history(monkeypatch) -> None:

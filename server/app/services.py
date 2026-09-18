@@ -6,12 +6,11 @@ import logging
 import math
 import random
 from collections import defaultdict, deque
-from collections.abc import AsyncIterator, Iterable
-from concurrent.futures import ThreadPoolExecutor
+from collections.abc import AsyncIterator, Iterable, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any, Protocol, cast
+from typing import Any, Protocol
 
 from .types import DeviceDefinition, MetricDefinition, TelemetryPoint, TelemetryValue
 
@@ -53,29 +52,25 @@ def _metric_from_schema(
     )
 
 
-def _load_archived_metadata(directory: Path) -> dict[str, dict[str, Any]]:
-    metadata: dict[str, dict[str, Any]] = {}
-    archive_directory = directory / "archive"
-    for path in archive_directory.glob("*.json*"):
-        content = path.read_bytes()
-        try:
-            td = json.loads(content.decode("utf-8-sig"))
-        except UnicodeDecodeError:
-            td = json.loads(content.decode("utf-16"))
-        title = td.get("title")
-        if isinstance(title, str) and title:
-            metadata[title.casefold()] = td
-    return metadata
+def _load_original_td(path: Path) -> dict[str, Any]:
+    """Read the vendor TD stored under `original/` with the same file name."""
+    original_path = path.parent / "original" / path.name
+    if not original_path.is_file():
+        return {}
+    content = original_path.read_bytes()
+    try:
+        return json.loads(content.decode("utf-8-sig"))
+    except UnicodeDecodeError:
+        return json.loads(content.decode("utf-16"))
 
 
 def load_devices(directory: Path) -> dict[str, DeviceDefinition]:
-    archived_metadata = _load_archived_metadata(directory)
     devices: dict[str, DeviceDefinition] = {}
     for path in sorted(directory.glob("*.td.json")):
         with path.open("r", encoding="utf-8") as td_file:
             td = json.load(td_file)
         title = str(td.get("title", path.name.removesuffix(".td.json")))
-        original_td = archived_metadata.get(title.casefold(), {})
+        original_td = _load_original_td(path)
         metrics = [
             _metric_from_schema(name, "event", raw, original_td.get("events", {}).get(name))
             for name, raw in td.get("events", {}).items()
@@ -85,12 +80,15 @@ def load_devices(directory: Path) -> dict[str, DeviceDefinition]:
             for name, raw in td.get("properties", {}).items()
         )
         device_id = str(td["id"])
+        dev_eui = td.get("lorav:devEUI") or original_td.get("lorav:devEUI")
         devices[device_id] = DeviceDefinition(
             id=device_id,
             title=str(original_td.get("title", title)),
             description=str(original_td.get("description", td.get("description", ""))),
             td=td,
             metrics=tuple(metrics),
+            dev_eui=str(dev_eui).lower() if dev_eui else None,
+            original_td=original_td,
         )
     if not devices:
         raise RuntimeError(f"No Thing Descriptions found in {directory}")
@@ -305,74 +303,110 @@ class WotDataSource:
 @dataclass(frozen=True, slots=True)
 class InfluxConfig:
     host: str
-    token: str
     database: str
-    organization: str | None = None
-    measurement: str = "device_telemetry"
+    username: str | None = None
+    password: str | None = None
+    # ChirpStack stores every decoded payload field in its own measurement.
+    measurement_prefix: str = "device_frmpayload_data_"
+    device_tag: str = "dev_eui"
+    field_name: str = "value"
+
+
+def _escape_literal(value: str) -> str:
+    return value.replace("\\", "\\\\").replace("'", "\\'")
 
 
 class InfluxRepository:
-    def __init__(self, config: InfluxConfig) -> None:
-        from influxdb_client_3 import InfluxDBClient3
+    """Read-only access to the InfluxDB 1.8 database fed by the ChirpStack integration."""
+
+    def __init__(self, config: InfluxConfig, max_points_per_series: int = 50000) -> None:
+        import httpx
 
         self._config = config
-        self._client = InfluxDBClient3(
-            host=config.host,
-            token=config.token,
-            database=config.database,
-            org=config.organization,
+        self._max_points = max_points_per_series
+        self._client = httpx.AsyncClient(
+            base_url=config.host.rstrip("/"),
+            auth=(config.username, config.password) if config.username else None,
+            timeout=30.0,
         )
-        self._executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="influx")
+        self._measurements: frozenset[str] | None = None
 
-    async def load_history(self, days: int) -> list[TelemetryPoint]:
-        query = (
-            f'SELECT time, device_id, metric, numeric_value, string_value, boolean_value '
-            f'FROM "{self._config.measurement}" '
-            f"WHERE time >= now() - INTERVAL '{days} days' ORDER BY time"
+    async def _query(self, statements: Sequence[str]) -> list[list[dict[str, Any]]]:
+        response = await self._client.get(
+            "/query",
+            params={
+                "db": self._config.database,
+                "q": ";".join(statements),
+                "epoch": "ms",
+            },
         )
-        table = await asyncio.get_running_loop().run_in_executor(
-            self._executor, lambda: self._client.query(query=query, language="sql")
+        response.raise_for_status()
+        results = sorted(
+            response.json().get("results", []), key=lambda item: item.get("statement_id", 0)
         )
-        rows = cast(Any, table).to_pylist()
-        return [
-            TelemetryPoint(
-                device_id=str(row["device_id"]),
-                metric=str(row["metric"]),
-                value=next(
-                    (
-                        row[field]
-                        for field in ("numeric_value", "string_value", "boolean_value")
-                        if row.get(field) is not None
-                    ),
-                    None,
-                ),
-                timestamp=row["time"],
-                source="influx",
-            )
-            for row in rows
+        tables: list[list[dict[str, Any]]] = []
+        for result in results:
+            if result.get("error"):
+                raise RuntimeError(result["error"])
+            rows: list[dict[str, Any]] = []
+            for series in result.get("series", []):
+                columns = series.get("columns", [])
+                rows.extend(dict(zip(columns, values)) for values in series.get("values", []))
+            tables.append(rows)
+        return tables
+
+    def measurement_for(self, metric: str) -> str:
+        return f"{self._config.measurement_prefix}{metric}"
+
+    async def measurements(self, refresh: bool = False) -> frozenset[str]:
+        if self._measurements is None or refresh:
+            rows = (await self._query(["SHOW MEASUREMENTS"]))[0]
+            self._measurements = frozenset(str(row["name"]) for row in rows)
+        return self._measurements
+
+    async def available_metrics(self, device: DeviceDefinition) -> tuple[str, ...]:
+        if not device.dev_eui:
+            return ()
+        known = await self.measurements()
+        return tuple(
+            metric.name
+            for metric in device.metrics
+            if self.measurement_for(metric.name) in known
+        )
+
+    async def history(
+        self, device: DeviceDefinition, metrics: Sequence[str], minutes: int
+    ) -> dict[str, list[dict[str, Any]]]:
+        available = set(await self.available_metrics(device))
+        selected = [metric for metric in metrics if metric in available]
+        if not selected or not device.dev_eui:
+            return {}
+        dev_eui = _escape_literal(device.dev_eui)
+        field = self._config.field_name
+        statements = [
+            f'SELECT "{field}" FROM "{self.measurement_for(metric)}" '
+            f"WHERE \"{self._config.device_tag}\" = '{dev_eui}' "
+            f"AND time >= now() - {max(1, int(minutes))}m "
+            f"ORDER BY time LIMIT {self._max_points}"
+            for metric in selected
         ]
+        tables = await self._query(statements)
+        series: dict[str, list[dict[str, Any]]] = {}
+        for metric, rows in zip(selected, tables):
+            points = [
+                TelemetryPoint(
+                    device_id=device.id,
+                    metric=metric,
+                    value=row[field],
+                    timestamp=datetime.fromtimestamp(row["time"] / 1000, tz=timezone.utc),
+                    source="influx",
+                ).as_dict()
+                for row in rows
+                if row.get(field) is not None
+            ]
+            if points:
+                series[metric] = points
+        return series
 
-    async def write(self, points: list[TelemetryPoint]) -> None:
-        if not points:
-            return
-        records = []
-        for point in points:
-            if isinstance(point.value, bool):
-                fields = {"boolean_value": point.value}
-            elif isinstance(point.value, int | float):
-                fields = {"numeric_value": float(point.value)}
-            else:
-                fields = {"string_value": str(point.value)}
-            records.append({
-                "measurement": self._config.measurement,
-                "tags": {"device_id": point.device_id, "metric": point.metric},
-                "fields": fields,
-                "time": point.timestamp,
-            })
-        await asyncio.get_running_loop().run_in_executor(
-            self._executor, lambda: self._client.write(record=records)
-        )
-
-    def close(self) -> None:
-        self._client.close()
-        self._executor.shutdown(wait=False, cancel_futures=True)
+    async def close(self) -> None:
+        await self._client.aclose()

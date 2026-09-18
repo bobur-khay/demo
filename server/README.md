@@ -1,6 +1,6 @@
 # WoT Devices Dashboard API
 
-FastAPI service that discovers active `*.td.json` Thing Descriptions, keeps bounded telemetry history in memory, optionally persists it to InfluxDB 3, and streams device-scoped updates over WebSockets.
+FastAPI service that discovers active `*.td.json` Thing Descriptions, streams live readings from WoTPy over WebSockets, and serves historical trends from an InfluxDB 1.8 database filled by the ChirpStack integration.
 
 ## Local setup
 
@@ -15,9 +15,11 @@ The API runs at `http://127.0.0.1:8000`; OpenAPI is at `/docs`. Copy `.env.examp
 
 ## Runtime modes
 
-- `DATA_SOURCE=wot` (default) consumes each TD with WoTPy's Zenoh client, reads device properties concurrently every poll interval, and subscribes to events.
-- `DATA_SOURCE=mock` generates deterministic two-second telemetry, 30 days of half-hour history, and alternates Milesight `leakage_status` between `normal` and `leak` every five seconds.
-- InfluxDB is enabled only when `INFLUX_HOST`, `INFLUX_TOKEN`, and `INFLUX_DATABASE` are all present. Existing history is loaded at startup and new points are persisted continuously.
+- `DATA_SOURCE=wot` (default) consumes each TD with WoTPy's Zenoh client, reads device properties concurrently every poll interval, and subscribes to events. These readings feed the live metric cards.
+- `DATA_SOURCE=mock` generates deterministic two-second telemetry and alternates Milesight `leakage_status` between `normal` and `leak` every five seconds.
+- `HISTORY_DATA_SOURCE=influxdb` serves every trend chart straight from InfluxDB 1.8. It requires `INFLUX_HOST` and `INFLUX_DATABASE` (plus optional `INFLUX_USERNAME` / `INFLUX_PASSWORD`) and falls back to generated history when they are missing.
+- `HISTORY_DATA_SOURCE=mock` preloads `HISTORY_DAYS` of synthetic half-hour history into the in-memory store instead.
+- Metrics are matched to InfluxDB measurements as `INFLUX_MEASUREMENT_PREFIX` + metric name (for example `device_frmpayload_data_temperature`) and filtered by the `dev_eui` tag taken from the TD's `lorav:devEUI`.
 
 WoTPy is pinned to upstream commit `f72b8490d56972e2fcc124f19b1d96c5d85eb074` for reproducible installs.
 
@@ -25,7 +27,8 @@ WoTPy is pinned to upstream commit `f72b8490d56972e2fcc124f19b1d96c5d85eb074` fo
 
 - `GET /api/health`
 - `GET /api/devices`
-- `GET /api/devices/{device_id}/history?metrics=temperature,humidity`
+- `GET /api/devices/{device_id}/history?metrics=temperature,humidity&minutes=1440`
+- `GET /api/devices/{device_id}/history-metrics`
 - `GET /api/tds/{device_id}`
 - `WS /api/ws/devices/{device_id}`
 

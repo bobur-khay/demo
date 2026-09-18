@@ -31,6 +31,7 @@ export interface DeviceDefinition {
 export interface HealthStatus {
   status: "ok" | "degraded";
   dataSource: "mock" | "wot";
+  historySource: "mock" | "influxdb";
   influx: "disabled" | "connected" | "error";
   deviceCount: number;
   connectedCount: number;
@@ -39,6 +40,7 @@ export interface HealthStatus {
 
 export interface DeviceHistory {
   deviceId: string;
+  source: "mock" | "influxdb";
   series: Record<string, TelemetryPoint[]>;
 }
 
@@ -86,11 +88,29 @@ export function setDeviceConnection(
 export function getDeviceHistory(
   deviceId: string,
   metrics: string[],
+  minutes?: number,
   signal?: AbortSignal,
 ) {
   const query = new URLSearchParams({ metrics: metrics.join(",") });
+  if (minutes) {
+    query.set("minutes", String(Math.ceil(minutes)));
+  }
   return request<DeviceHistory>(
     `/api/devices/${encodeURIComponent(deviceId)}/history?${query}`,
+    signal,
+  );
+}
+
+export type ThingDescriptionVariant = "zenoh" | "original";
+
+export function getThingDescription(
+  deviceId: string,
+  variant: ThingDescriptionVariant,
+  signal?: AbortSignal,
+) {
+  const suffix = variant === "original" ? "/original" : "";
+  return request<Record<string, unknown>>(
+    `/api/tds/${encodeURIComponent(deviceId)}${suffix}`,
     signal,
   );
 }

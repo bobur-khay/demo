@@ -12,7 +12,8 @@ FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     TDS_DIRECTORY=/app/tds \
-    DATA_SOURCE=wot
+    DATA_SOURCE=wot \
+    HISTORY_DATA_SOURCE=influxdb
 
 RUN useradd --create-home --uid 10001 appuser
 COPY --from=builder /install /usr/local
