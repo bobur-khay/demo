@@ -10,6 +10,7 @@ from collections.abc import AsyncIterator, Iterable, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from time import monotonic
 from typing import Any, Protocol
 
 from .types import DeviceDefinition, MetricDefinition, TelemetryPoint, TelemetryValue
@@ -325,6 +326,10 @@ def _escape_literal(value: str) -> str:
 class InfluxRepository:
     """Read-only access to the InfluxDB 1.8 database fed by the ChirpStack integration."""
 
+    # ChirpStack creates a measurement the first time a payload field arrives, so the
+    # list is re-read periodically instead of being frozen at start-up.
+    MEASUREMENT_CACHE_SECONDS = 300.0
+
     def __init__(self, config: InfluxConfig, max_points_per_series: int = 50000) -> None:
         import httpx
 
@@ -332,10 +337,11 @@ class InfluxRepository:
         self._max_points = max_points_per_series
         self._client = httpx.AsyncClient(
             base_url=config.host.rstrip("/"),
-            auth=(config.username, config.password) if config.username else None,
+            auth=(config.username, config.password or "") if config.username else None,
             timeout=30.0,
         )
         self._measurements: frozenset[str] | None = None
+        self._measurements_read_at = 0.0
 
     async def _query(self, statements: Sequence[str]) -> list[list[dict[str, Any]]]:
         response = await self._client.get(
@@ -364,10 +370,14 @@ class InfluxRepository:
     def measurement_for(self, metric: str) -> str:
         return f"{self._config.measurement_prefix}{metric}"
 
+    def _measurements_are_stale(self) -> bool:
+        return monotonic() - self._measurements_read_at >= self.MEASUREMENT_CACHE_SECONDS
+
     async def measurements(self, refresh: bool = False) -> frozenset[str]:
-        if self._measurements is None or refresh:
+        if self._measurements is None or refresh or self._measurements_are_stale():
             rows = (await self._query(["SHOW MEASUREMENTS"]))[0]
             self._measurements = frozenset(str(row["name"]) for row in rows)
+            self._measurements_read_at = monotonic()
         return self._measurements
 
     async def available_metrics(self, device: DeviceDefinition) -> tuple[str, ...]:
