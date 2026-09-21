@@ -32,7 +32,7 @@ export interface HealthStatus {
   status: "ok" | "degraded";
   dataSource: "mock" | "wot";
   historySource: "mock" | "influxdb";
-  influx: "disabled" | "connected" | "error";
+  influx: "disabled" | "connected" | "error" | "misconfigured";
   deviceCount: number;
   connectedCount: number;
   pollIntervalSeconds: number;
@@ -40,7 +40,7 @@ export interface HealthStatus {
 
 export interface DeviceHistory {
   deviceId: string;
-  source: "mock" | "influxdb";
+  source: "mock" | "influxdb" | "live";
   series: Record<string, TelemetryPoint[]>;
 }
 

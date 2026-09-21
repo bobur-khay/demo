@@ -17,9 +17,10 @@ The API runs at `http://127.0.0.1:8000`; OpenAPI is at `/docs`. Copy `.env.examp
 
 - `DATA_SOURCE=wot` (default) consumes each TD with WoTPy's Zenoh client, reads device properties concurrently every poll interval, and subscribes to events. These readings feed the live metric cards.
 - `DATA_SOURCE=mock` generates deterministic two-second telemetry and alternates Milesight `leakage_status` between `normal` and `leak` every five seconds.
-- `HISTORY_DATA_SOURCE=influxdb` serves every trend chart straight from InfluxDB 1.8. It requires `INFLUX_HOST` and `INFLUX_DATABASE` (plus optional `INFLUX_USERNAME` / `INFLUX_PASSWORD`) and falls back to generated history when they are missing.
+- `HISTORY_DATA_SOURCE=influxdb` serves every trend chart straight from InfluxDB 1.8. It requires `INFLUX_HOST` and `INFLUX_DATABASE` (plus optional `INFLUX_USERNAME` / `INFLUX_PASSWORD`). When they are missing it logs an error, falls back to generated history, and reports `status: "degraded"` with `influx: "misconfigured"` on `/api/health` so the substitution is never silent.
 - `HISTORY_DATA_SOURCE=mock` preloads `HISTORY_DAYS` of synthetic half-hour history into the in-memory store instead.
-- Metrics are matched to InfluxDB measurements as `INFLUX_MEASUREMENT_PREFIX` + metric name (for example `device_frmpayload_data_temperature`) and filtered by the `dev_eui` tag taken from the TD's `lorav:devEUI`.
+- Metrics are matched to InfluxDB measurements as `INFLUX_MEASUREMENT_PREFIX` + metric name (for example `device_frmpayload_data_temperature`) and filtered by the `dev_eui` tag taken from the TD's `lorav:devEUI`. The measurement list is cached for five minutes, so fields that ChirpStack creates later appear without a restart.
+- Devices with no `lorav:devEUI` never reach ChirpStack — the Modbus SENTRON meter, for example. Their trends are served from the live readings collected since start-up and reported as `source: "live"` rather than coming back empty.
 
 WoTPy is pinned to upstream commit `f72b8490d56972e2fcc124f19b1d96c5d85eb074` for reproducible installs.
 

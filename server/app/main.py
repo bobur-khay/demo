@@ -48,6 +48,9 @@ class Settings:
     tds_directory: Path
     cors_origins: tuple[str, ...]
     influx: InfluxConfig | None
+    # True when influxdb history was requested but the connection details are missing,
+    # so the served history is generated instead of real.
+    influx_misconfigured: bool = False
 
     @classmethod
     def from_environment(cls) -> "Settings":
@@ -65,9 +68,11 @@ class Settings:
                 ),
             )
         elif influx_host or influx_database:
-            logger.warning(
+            logger.error(
                 "InfluxDB is disabled because INFLUX_HOST and INFLUX_DATABASE "
-                "are not both configured"
+                "are not both configured (INFLUX_HOST=%r, INFLUX_DATABASE=%r)",
+                influx_host,
+                influx_database,
             )
 
         source = os.getenv("DATA_SOURCE", "wot").lower()
@@ -76,10 +81,12 @@ class Settings:
         history_source = os.getenv("HISTORY_DATA_SOURCE", "mock").lower()
         if history_source not in {"mock", "influxdb"}:
             raise ValueError("HISTORY_DATA_SOURCE must be 'mock' or 'influxdb'")
-        if history_source == "influxdb" and influx is None:
-            logger.warning(
-                "HISTORY_DATA_SOURCE=influxdb needs INFLUX_HOST and INFLUX_DATABASE; "
-                "falling back to generated history"
+        influx_misconfigured = history_source == "influxdb" and influx is None
+        if influx_misconfigured:
+            logger.error(
+                "HISTORY_DATA_SOURCE=influxdb needs INFLUX_HOST and INFLUX_DATABASE, "
+                "which are missing (is the .env file in place?); trends fall back to "
+                "GENERATED history and /api/health reports 'degraded'"
             )
             history_source = "mock"
         default_tds = PROJECT_ROOT / "tds"
@@ -98,6 +105,7 @@ class Settings:
                 if origin.strip()
             ),
             influx=influx,
+            influx_misconfigured=influx_misconfigured,
         )
 
 
@@ -175,6 +183,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         else None
     )
     runtime = Runtime(settings, devices, store, history_store, source, influx)
+    if settings.influx_misconfigured:
+        runtime.influx_status = "misconfigured"
     app.state.runtime = runtime
 
     await source.start()
@@ -186,6 +196,13 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         except Exception as error:
             runtime.influx_status = "error"
             logger.warning("Unable to reach InfluxDB: %s", error)
+        uncovered = [device.title for device in devices.values() if not device.dev_eui]
+        if uncovered:
+            logger.info(
+                "No lorav:devEUI on %s, so ChirpStack never stored them; "
+                "their trends are served from live readings instead",
+                ", ".join(uncovered),
+            )
     else:
         # Trends fall back to a deterministic synthetic series, kept separate from live data.
         await history_store.append_many(
@@ -222,6 +239,11 @@ def _runtime() -> Runtime:
     return app.state.runtime
 
 
+def _influx_covers(runtime: Runtime, device: DeviceDefinition) -> bool:
+    """InfluxDB only holds devices that ChirpStack ingested, keyed by their devEUI."""
+    return runtime.influx is not None and bool(device.dev_eui)
+
+
 def _device_or_404(device_id: str) -> DeviceDefinition:
     device = _runtime().devices.get(device_id)
     if device is None:
@@ -233,7 +255,7 @@ def _device_or_404(device_id: str) -> DeviceDefinition:
 async def health() -> dict[str, object]:
     runtime = _runtime()
     return {
-        "status": "ok" if runtime.influx_status != "error" else "degraded",
+        "status": "degraded" if runtime.influx_status in {"error", "misconfigured"} else "ok",
         "dataSource": runtime.settings.data_source,
         "historySource": runtime.settings.history_data_source,
         "influx": runtime.influx_status,
@@ -288,11 +310,18 @@ async def device_history(
         unknown = sorted(selected - known_metrics)
         raise HTTPException(status_code=400, detail=f"Unknown metrics: {', '.join(unknown)}")
 
-    if runtime.influx is None:
+    if not _influx_covers(runtime, device):
+        # A device without a devEUI is absent from the ChirpStack database, so the best
+        # trend available is what the poller has collected since start-up.
+        store, source = (
+            (runtime.store, "live")
+            if runtime.influx is not None
+            else (runtime.history_store, runtime.settings.history_data_source)
+        )
         return {
             "deviceId": device_id,
-            "source": runtime.settings.history_data_source,
-            "series": await runtime.history_store.history(device_id, selected),
+            "source": source,
+            "series": await store.history(device_id, selected),
         }
 
     window = minutes or runtime.settings.history_days * 24 * 60
@@ -315,7 +344,7 @@ async def device_history(
 async def device_history_metrics(device_id: str) -> dict[str, object]:
     device = _device_or_404(device_id)
     runtime = _runtime()
-    if runtime.influx is None:
+    if not _influx_covers(runtime, device):
         available = [
             metric.name
             for metric in device.metrics

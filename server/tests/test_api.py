@@ -1,14 +1,28 @@
 import asyncio
+from collections.abc import Sequence
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
 from starlette.websockets import WebSocketDisconnect
 
-from app.main import Settings, _create_data_source, _load_environment, app
-from app.services import MockDataSource, WotDataSource, load_devices
+from app.main import (
+    Settings,
+    _create_data_source,
+    _influx_covers,
+    _load_environment,
+    app,
+)
+from app.services import (
+    InfluxConfig,
+    InfluxRepository,
+    MockDataSource,
+    WotDataSource,
+    load_devices,
+)
 from app.types import DeviceDefinition, MetricDefinition
 
 
@@ -48,14 +62,57 @@ def test_history_data_source_toggles_the_history_backend(monkeypatch) -> None:
     monkeypatch.setenv("HISTORY_DATA_SOURCE", "mock")
     assert Settings.from_environment().history_data_source == "mock"
 
-    # Without connection details the influxdb mode degrades to generated history.
+    # Without connection details the influxdb mode degrades to generated history,
+    # and says so loudly enough for /api/health to report "degraded".
     monkeypatch.setenv("HISTORY_DATA_SOURCE", "influxdb")
     monkeypatch.delenv("INFLUX_DATABASE")
-    assert Settings.from_environment().history_data_source == "mock"
+    degraded = Settings.from_environment()
+    assert degraded.history_data_source == "mock"
+    assert degraded.influx_misconfigured is True
+    assert influx_settings.influx_misconfigured is False
 
     monkeypatch.setenv("HISTORY_DATA_SOURCE", "nowhere")
     with pytest.raises(ValueError):
         Settings.from_environment()
+
+
+def test_devices_without_a_dev_eui_are_not_looked_up_in_influx() -> None:
+    devices = load_devices(Path(__file__).resolve().parents[2] / "tds")
+    sentron = next(device for device in devices.values() if device.title.startswith("SIEMENS"))
+    lorawan = next(device for device in devices.values() if device.dev_eui)
+    runtime = SimpleNamespace(influx=object())
+
+    # The Modbus meter never reaches ChirpStack, so its trends come from live readings.
+    assert sentron.dev_eui is None
+    assert _influx_covers(runtime, sentron) is False
+    assert _influx_covers(runtime, lorawan) is True
+    assert _influx_covers(SimpleNamespace(influx=None), lorawan) is False
+
+
+def test_measurement_cache_is_refreshed_after_the_ttl(monkeypatch) -> None:
+    repository = InfluxRepository(
+        InfluxConfig(host="http://influx:8086", database="chirpstack")
+    )
+    queries: list[Sequence[str]] = []
+
+    async def fake_query(statements: Sequence[str]) -> list[list[dict[str, Any]]]:
+        queries.append(statements)
+        return [[{"name": "device_frmpayload_data_temperature"}]]
+
+    clock = [1000.0]
+    monkeypatch.setattr(repository, "_query", fake_query)
+    monkeypatch.setattr("app.services.monotonic", lambda: clock[0])
+
+    asyncio.run(repository.measurements())
+    asyncio.run(repository.measurements())
+    assert len(queries) == 1
+
+    # A measurement created after start-up becomes visible once the cache expires.
+    clock[0] += InfluxRepository.MEASUREMENT_CACHE_SECONDS + 1
+    asyncio.run(repository.measurements())
+    assert len(queries) == 2
+
+    asyncio.run(repository.close())
 
 
 def test_device_inventory_and_history(monkeypatch) -> None:
