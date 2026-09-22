@@ -1,14 +1,18 @@
 services:
   influxdb:
-    image: influxdb:3-core
-    container_name: influxdb3
+    image: influxdb:1.8
+    container_name: influxdb18
     ports:
-      - "127.0.0.1:8181:8181"
-    command:
-      - influxdb3
-      - serve
-      - --node-id=node0
-      - --object-store=file
-      - --data-dir=/var/lib/influxdb3/data
+      - "127.0.0.1:8086:8086"
+    environment:
+      INFLUXDB_DB: ${INFLUX_DATABASE:-chirpstack}
+      INFLUXDB_HTTP_AUTH_ENABLED: "false"
+      INFLUXDB_REPORTING_DISABLED: "true"
     volumes:
-      - ./data:/var/lib/influxdb3/data
+      # v1 storage layout; the old ./data directory holds incompatible v3 files.
+      - ./data18:/var/lib/influxdb
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://127.0.0.1:8086/ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
