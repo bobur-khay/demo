@@ -204,6 +204,8 @@ function lastSeen(device: DeviceDefinition) {
 const TREND_PRIORITY = [
   "temperature",
   "humidity",
+  "lux",
+  "pir",
   "power",
   "current",
   "voltage",
@@ -729,7 +731,7 @@ function App() {
     ? PHASE_GROUPS[phaseGroup]
     : historyMetrics
         .filter((metric) => (history[metric]?.length ?? 0) > 1)
-        .slice(0, 3);
+        .slice(0, 4);
   const historyLoading = Boolean(
     selectedDevice &&
     historyMetrics.length &&
