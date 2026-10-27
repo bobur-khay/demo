@@ -161,6 +161,7 @@ function deviceIcon(device: DeviceDefinition) {
   if (name.includes("sentron")) return Zap;
   if (name.includes("milesight")) return Waves;
   if (name.includes("netvox")) return Radio;
+  if (name.includes("elsys")) return Cloud;
   return Gauge;
 }
 
@@ -204,6 +205,8 @@ function lastSeen(device: DeviceDefinition) {
 const TREND_PRIORITY = [
   "temperature",
   "humidity",
+  "co2",
+  "light",
   "lux",
   "pir",
   "power",

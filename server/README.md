@@ -5,10 +5,10 @@ FastAPI service that discovers active `*.td.json` Thing Descriptions, streams li
 ## Local setup
 
 ```powershell
-python -m venv .venv
+python3 -m venv .venv
 .\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
-python -m uvicorn app.main:app --reload
+python3 -m pip install -r requirements.txt
+python3 -m uvicorn app.main:app --reload
 ```
 
 The API runs at `http://127.0.0.1:8000`; OpenAPI is at `/docs`. Copy `.env.example` to the project root as `.env` for local configuration. The application loads that file automatically, while values exported by the shell or process manager take precedence.
