@@ -321,6 +321,7 @@ function DeviceTrendPanel({
               colors={CHART_COLORS}
               data={data}
               timeAxis={timeAxis}
+              rangeMinutes={rangeMinutes}
               metrics={chartMetrics.map((metric) => ({
                 key: metric,
                 label: titles.get(metric) || metric,
@@ -1465,6 +1466,7 @@ function App() {
                         colors={CHART_COLORS}
                         data={chartData}
                         timeAxis={rangeMinutes <= 24 * 60}
+                        rangeMinutes={rangeMinutes}
                         metrics={chartMetrics.map((metric) => ({
                           key: metric,
                           label: metricByName.get(metric)?.title || metric,
