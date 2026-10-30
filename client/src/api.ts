@@ -46,7 +46,7 @@ export interface DeviceHistory {
 
 const API_BASE_URL = (
   import.meta.env.VITE_API_BASE_URL ||
-  (import.meta.env.PROD ? window.location.origin : "http://localhost:8000")
+  (import.meta.env.PROD ? window.location.origin : `${window.location.protocol}//${window.location.hostname}:8000`)
 ).replace(/\/$/, "");
 
 async function request<T>(
